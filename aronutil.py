@@ -34,7 +34,7 @@ block_map =  {
     blocks[7]: 'Conv_norm_indices'
 }
 
-def avz_model(path, is_nice=False, to_clipboard=False):
+def model(path, is_nice=False, to_clipboard=False):
     '''is_nice is true when names are clever (or nice!). 
     When is_nice=True components are categorized.
     When to_clipboard is true MBL, Materialcoeff and Materials 
@@ -150,7 +150,7 @@ def avz_to_df(avz_path):
     '''Get a complete DataFrame from .avz-file.'''
     data_dicts = collect_avz_data(avz_path, blocks)
     df_result = avz_result(data_dicts)
-    df_model = avz_model(avz_path)
+    df_model = model(avz_path)
     return pd.merge(df_model, df_result, left_index=True, right_index=True)
 
 def avz_env_mapping(avz_path):
