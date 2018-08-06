@@ -146,11 +146,12 @@ def avz_result(data_dicts, return_df_data=False):
     else:
         return df_max
 
-def avz_to_df(avz_path):
+def avz_to_df(avz_path, is_nice=False):
     '''Get a complete DataFrame from .avz-file.'''
     data_dicts = collect_avz_data(avz_path, blocks)
+    df_model = model(avz_path, is_nice)
     df_result = avz_result(data_dicts)
-    df_model = model(avz_path)
+    df_result['Utnyttelse [%]'] = df_result['Last [tonn]'] * 100 / df_model['Lastgrense [tonn]']
     return pd.merge(df_model, df_result, left_index=True, right_index=True)
 
 def avz_env_mapping(avz_path):
