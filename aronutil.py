@@ -167,13 +167,12 @@ def avz_env_mapping(avz_path):
             file_names = []
             for line in file:
                 nice_line = line.decode('Latin-1').strip()
-                if (nice_line == '}') & is_inside:
+                if (nice_line == '}') & is_inside: # End of block
                     break
-                if nice_line == 'FILEINDEX {':
-                    is_inside = True
-                    continue
                 if is_inside:
                     file_names.append(nice_line)
+                if nice_line == 'FILEINDEX {': # Start collecting after this line
+                    is_inside = True
             
     mapping = {i: file_name for i, file_name in enumerate(reversed(file_names), 1)}
     return mapping
