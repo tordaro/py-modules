@@ -131,15 +131,17 @@ def avz_result(data_dicts, return_df_data=False):
     df_max.index.name = 'ID'
     df_max['Last [N]'] = df_data.apply(lambda row: row['Forces'][row['Forces_argmax']], axis=1)
     df_max['Last [tonn]'] = df_max['Last [N]'] / (g * 1000)
-    df_max['LT last'] = df_data.apply(lambda row: row['Force_indices'][row['Forces_argmax']], axis=1).astype(np.int64)
     df_max['Maks vertikal last [tonn]'] = df_data.apply(lambda row: row['Z_forces'][row['Z_forces_argmax']], axis=1)
     df_max['Min vertikal last [tonn]'] = df_data.apply(lambda row: row['Z_forces'][row['Z_forces_argmin']], axis=1)
-    df_max['LT maks vertikal'] = df_data.apply(lambda row: row['Z_forces_indices'][row['Z_forces_argmax']], axis=1).astype(np.int64)
-    df_max['LT min vertikal'] = df_data.apply(lambda row: row['Z_forces_indices'][row['Z_forces_argmin']], axis=1).astype(np.int64)
     df_max['Spenningsvidde [MPa]'] = df_data.apply(lambda row: row['Right_web'][row['Right_web_argmax']], axis=1)
-    df_max['LT spenningsvidde'] = df_data.apply(lambda row: row['Right_web_indices'][row['Right_web_argmax']], axis=1).astype(np.int64)
     df_max['Konvergens'] = df_data.apply(lambda row: row['Conv_norm'][row['Conv_norm_argmax']], axis=1)
-    df_max['LT konvergens'] = df_data.apply(lambda row: row['Conv_norm_indices'][row['Conv_norm_argmax']], axis=1).astype(np.int64)
+    
+    if 'Force_indices' in data_dicts.keys(): # Enough to only check for Force_indices
+        df_max['LT last'] = df_data.apply(lambda row: row['Force_indices'][row['Forces_argmax']], axis=1).astype(np.int64)
+        df_max['LT maks vertikal'] = df_data.apply(lambda row: row['Z_forces_indices'][row['Z_forces_argmax']], axis=1).astype(np.int64)
+        df_max['LT min vertikal'] = df_data.apply(lambda row: row['Z_forces_indices'][row['Z_forces_argmin']], axis=1).astype(np.int64)
+        df_max['LT spenningsvidde'] = df_data.apply(lambda row: row['Right_web_indices'][row['Right_web_argmax']], axis=1).astype(np.int64)
+        df_max['LT konvergens'] = df_data.apply(lambda row: row['Conv_norm_indices'][row['Conv_norm_argmax']], axis=1).astype(np.int64)
     
     if return_df_data:
         return df_max, df_data
