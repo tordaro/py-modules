@@ -34,7 +34,7 @@ block_map =  {
     blocks[7]: 'Conv_norm_indices'
 }
 
-def model(path, is_nice=False, to_clipboard=False):
+def model(path, is_accident, is_nice=False, to_clipboard=False):
     '''is_nice is true when names are clever (or nice!). 
     When is_nice=True components are categorized.
     When to_clipboard is true MBL, Materialcoeff and Materials 
@@ -72,9 +72,12 @@ def model(path, is_nice=False, to_clipboard=False):
         model["Navn"].append(name)
         model["Materialkoeffisient"].append(float(comp.attrib["materialcoeff"]))
         model["MBL [tonn]"].append(mbl)
-        model["Lastgrense [tonn]"].append(mbl/(mcoeff*1.15))
         model["ID"].append(int(comp.attrib["id"]))
         model["Edit ID"].append(int(comp.attrib["number"]))
+        if is_accident:
+            model["Lastgrense [tonn]"].append(mbl/(mcoeff/1.5))
+        else:
+            model["Lastgrense [tonn]"].append(mbl/(mcoeff*1.15))
     
     df_model = pd.DataFrame(data = model)
     df_model.set_index("ID", inplace=True)
@@ -148,10 +151,10 @@ def avz_result(data_dicts, return_df_data=False):
     else:
         return df_max
 
-def avz_to_df(avz_path, is_nice=False):
+def avz_to_df(avz_path, is_accident, is_nice=False):
     '''Get a complete DataFrame from .avz-file.'''
     data_dicts = collect_avz_data(avz_path, blocks)
-    df_model = model(avz_path, is_nice)
+    df_model = model(avz_path, is_accident, is_nice)
     df_result = avz_result(data_dicts)
     df_result['Utnyttelse [%]'] = df_result['Last [tonn]'] * 100 / df_model['Lastgrense [tonn]']
     return pd.merge(df_model, df_result, left_index=True, right_index=True)
