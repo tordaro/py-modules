@@ -1,1 +1,3 @@
 TODO Make global header list. Makes changing header names easier.
+
+TODO Write function that groups data. Should take ID and a list of categories.
