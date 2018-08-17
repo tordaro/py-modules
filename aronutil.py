@@ -207,8 +207,13 @@ def direction(degrees, numeric=True):
 
 
 def read_key(key_path):
+	'''Reads relevant data from key.txt-file.
+	mass_w   ==> effective mass in water [kg]
+	mass     ==> mass [kg]
+	bouyancy ==> bouyancy [kg]
+	length   ==> length [m]'''
 	with open(key_path, "r") as file:
-	    header = ['ID', 'm_water', 'm_air', 'boyancy', 'L']
+	    header = ['ID', 'mass_w', 'mass', 'boyancy', 'L']
 	    lines = {name: [] for name in header}
 	    for line in file:
 	        if 'Component' in line:
