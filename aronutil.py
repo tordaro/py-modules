@@ -224,6 +224,54 @@ def read_key(key_path):
 	                for i in range(1, len(header)-1):
 	                    lines[header[i]].append(float(data[i+1])/g)
 	    
-	    df_key = pd.DataFrame(lines)
-	    df_key.set_index('ID', inplace=True)
-	    return df_key
+    df_key = pd.DataFrame(lines)
+    df_key.set_index('ID', inplace=True)
+    return df_key
+
+def collect_env(avz_path):
+    '''Read environment data from .avz-file and return
+    it in a dictionary.'''
+    with zipfile.ZipFile(avz_path) as zfile:
+        with zfile.open('model.xml') as file:
+            root = et.XML(file.read().decode("Latin-1"))
+
+    current_keys = ['velocity_5', 'direction_5', 'velocity_15', 'direction_15']
+    load_keys = root[0][0].keys() + current_keys
+    keys_to_numeric = ['waveamplitude', 'waveperiod', 'waveangle',
+                       'wavetype', 'currentx', 'currenty', 'windx', 'windy']
+    env_data = {key: [] for key in load_keys}
+
+    for load in root[0]:
+        current1 = load[0][0]
+        current2 = load[0][1]
+        for key in keys_to_numeric:
+            env_data[key].append(float(load.attrib[key]))
+        env_data['group'].append(int(load.attrib['group']))
+        env_data['type'].append(load.attrib['type'])
+        env_data[current_keys[0]].append(float(current1.attrib["velocity"]))
+        env_data[current_keys[1]].append(float(current1.attrib["direction"]))
+        env_data[current_keys[2]].append(float(current2.attrib["velocity"]))
+        env_data[current_keys[3]].append(float(current2.attrib["direction"]))
+    return env_data
+
+def read_env_data(env_dict):
+    '''Treat environment data from dictionary
+    and return it in a DataFrame.'''
+    df_env = pd.DataFrame(env_data)
+    df_env.type = pd.Categorical(df_env.type)
+    df_env.index += 1
+    df_env.waveamplitude = df_env.waveamplitude * 1.05 # For some reason
+    df_env['wind'] = np.sqrt(df_env.windx**2 + df_env.windy**2)
+    df_env['wind_direction'] = (np.arctan2(df_env.windx, df_env.windy)
+                              * 180 / np.pi + 180)
+    df_env['current_5_direction'] = (np.arctan2(df_env.windx, df_env.windy)
+                              * 180 / np.pi + 180)
+    df_env['sector'] = df_env.wind_direction.apply(lambda r: direction(r, numeric=False))
+    df_env['num_sector'] = df_env.wind_direction.apply(lambda r: direction(r, numeric=True))
+    df_env['type'] = pd.Categorical(df_env['type'])
+    return df_env[["sector", "waveamplitude", "waveperiod", "wind", "wind_direction",
+                   "velocity_5", "direction_5", "velocity_15", "direction_15",
+                  'type', 'group', 'num_sector']]
+
+def avz_to_env(avz_path):
+    return read_env_data(collect_env(avz_path))
