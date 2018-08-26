@@ -34,57 +34,67 @@ block_map =  {
     blocks[7]: 'Conv_norm_indices'
 }
 
+xml_header = [
+    'load_limit', 'edit_id', 'materialcoeff',
+    'mbl', 'name', 'component', 'material', 'id'
+]
+result_header = [
+    'force', 'load', 'max_zload',
+    'min_zload', 'right_web', 'conv_norm',
+    'force_index', 'max_zload_index', 'min_zload_index',
+    'right_web_index', 'conv_norm_index'
+]
+final_header = [
+    'Lastgrensen [tonn]', 'Edit ID', 'Materialkoeffisient',
+    'MBL [tonn]', 'Navn', 'Komponent', 'Materiale', 'Gruppe',
+    'Kraft [N]', 'Last [tonn]', 'Maks vertikal last [tonn]',
+    'Min vertikal last [tonn]', 'Spenningsvidde [MPa]',
+    'Konvergens', 'LT Last', 'LT maks vertikal last',
+    'LT min vertikal last', 'LT spenningsvidde',
+    'LT konvergens', 'Utnyttelse [%]'
+]
+
 def model(path, is_accident, is_nice=False, to_clipboard=False):
     '''is_nice is true when names are clever (or nice!). 
     When is_nice=True components are categorized.
     When to_clipboard is true MBL, Materialcoeff and Materials 
     are written to clipboard.'''
     
-    if path[-4:] == ".avz":        
+    if path[-4:] == '.avz':        
         with zipfile.ZipFile(file=path) as zfile:
             with zfile.open('model.xml') as file:
-                root = et.XML(file.read().decode("Latin-1"))
-    elif path[-4:] == ".xml":
-        tree = et.parse("Testmiljø/Horsvaagen_90m_.xml")
+                root = et.XML(file.read().decode('Latin-1'))
+    elif path[-4:] == '.xml':
+        tree = et.parse('Testmiljø/Horsvaagen_90m_.xml')
         root = tree.getroot()
     else:
-        print("Input file must be either .avz or .xml.")
+        print('Input file must be either .avz or .xml.')
         return None
     
-    model = {
-        "Lastgrense [tonn]": [],
-        "Edit ID": [], 
-        "Materialkoeffisient": [], 
-        "MBL [tonn]": [],
-        "Navn": [],
-        "Komponent": [],
-        "Materiale": [],
-        "ID": []
-    }
-    
-    for comp in root.iter("component"):        
-        mcoeff      = float(comp.attrib["materialcoeff"])
-        mbl         = float(comp.attrib["breakingload"])/(g*1000)
-        name        = comp.attrib["name"]
-        name_list   = name.split(":")
-        model["Komponent"].append(name_list[0].strip())
-        model["Materiale"].append(name_list[-1].strip())
-        model["Navn"].append(name)
-        model["Materialkoeffisient"].append(float(comp.attrib["materialcoeff"]))
-        model["MBL [tonn]"].append(mbl)
-        model["ID"].append(int(comp.attrib["id"]))
-        model["Edit ID"].append(int(comp.attrib["number"]))
+    model = {header: [] for header in xml_header}
+    for comp in root.iter('component'):
+        mcoeff      = float(comp.attrib['materialcoeff'])
+        mbl         = float(comp.attrib['breakingload'])/(g*1000)
+        name        = comp.attrib['name']
+        name_list   = name.split(':')
+        model[xml_header[5]].append(name_list[0].strip())   # component
+        model[xml_header[6]].append(name_list[-1].strip())  # material
+        model[xml_header[4]].append(name)                   # name
+        model[xml_header[2]].append(float(comp.attrib['materialcoeff'])) # materialcoeff
+        model[xml_header[3]].append(mbl)                    # mbl
+        model[xml_header[7]].append(int(comp.attrib['id'])) # id
+        model[xml_header[1]].append(int(comp.attrib['number'])) # edit_id
         if is_accident:
-            model["Lastgrense [tonn]"].append(mbl/(mcoeff/1.5))
+            model[xml_header[0]].append(mbl/(mcoeff/1.5))   # load_limit
         else:
-            model["Lastgrense [tonn]"].append(mbl/(mcoeff*1.15))
+            model[xml_header[0]].append(mbl/(mcoeff*1.15))  # load_limit
     
     df_model = pd.DataFrame(data = model)
-    df_model.set_index("ID", inplace=True)
+    df_model.set_index(xml_header[7], inplace=True)
     
     if is_nice:
-        df_model[['Komponent', 'Gruppe']] = df_model.Komponent.str.split('_', expand=True)
-        df_model.loc[:,'Gruppe'] = df_model.Gruppe.astype('category')
+        df_model[[xml_header[5], 'group']] = df_model[xml_header[5]].str.split('_', expand=True)
+        df_model.loc[:, 'group'] = df_model['group'].astype('category')
     
     return df_model
 
@@ -131,20 +141,20 @@ def avz_result(data_dicts, return_df_data=False):
     df_data['Conv_norm_argmax'] = df_data.Conv_norm.apply(np.argmax).astype(np.int64)
     
     df_max = pd.DataFrame(index=df_data.index)
-    df_max.index.name = 'ID'
-    df_max['Last [N]'] = df_data.apply(lambda row: row['Forces'][row['Forces_argmax']], axis=1)
-    df_max['Last [tonn]'] = df_max['Last [N]'] / (g * 1000)
-    df_max['Maks vertikal last [tonn]'] = df_data.apply(lambda row: row['Z_forces'][row['Z_forces_argmax']], axis=1)
-    df_max['Min vertikal last [tonn]'] = df_data.apply(lambda row: row['Z_forces'][row['Z_forces_argmin']], axis=1)
-    df_max['Spenningsvidde [MPa]'] = df_data.apply(lambda row: row['Right_web'][row['Right_web_argmax']], axis=1)
-    df_max['Konvergens'] = df_data.apply(lambda row: row['Conv_norm'][row['Conv_norm_argmax']], axis=1)
+    df_max.index.name = 'id'
+    df_max[result_header[0]] = df_data.apply(lambda row: row['Forces'][row['Forces_argmax']], axis=1) # force
+    df_max[result_header[1]] = df_max[result_header[0]] / (g * 1000) # load
+    df_max[result_header[2]] = df_data.apply(lambda row: row['Z_forces'][row['Z_forces_argmax']], axis=1) / (g * 1000) # max_zload
+    df_max[result_header[3]] = df_data.apply(lambda row: row['Z_forces'][row['Z_forces_argmin']], axis=1) / (g * 1000) # min_zload
+    df_max[result_header[4]] = df_data.apply(lambda row: row['Right_web'][row['Right_web_argmax']], axis=1) # right_web
+    df_max[result_header[5]] = df_data.apply(lambda row: row['Conv_norm'][row['Conv_norm_argmax']], axis=1) # conv_norm
     
     if 'Force_indices' in data_dicts.keys(): # Enough to only check for Force_indices
-        df_max['LT last'] = df_data.apply(lambda row: row['Force_indices'][row['Forces_argmax']], axis=1).astype(np.int64)
-        df_max['LT maks vertikal'] = df_data.apply(lambda row: row['Z_forces_indices'][row['Z_forces_argmax']], axis=1).astype(np.int64)
-        df_max['LT min vertikal'] = df_data.apply(lambda row: row['Z_forces_indices'][row['Z_forces_argmin']], axis=1).astype(np.int64)
-        df_max['LT spenningsvidde'] = df_data.apply(lambda row: row['Right_web_indices'][row['Right_web_argmax']], axis=1).astype(np.int64)
-        df_max['LT konvergens'] = df_data.apply(lambda row: row['Conv_norm_indices'][row['Conv_norm_argmax']], axis=1).astype(np.int64)
+        df_max[result_header[6]] = df_data.apply(lambda row: row['Force_indices'][row['Forces_argmax']], axis=1).astype(np.int64) # force_index
+        df_max[result_header[7]] = df_data.apply(lambda row: row['Z_forces_indices'][row['Z_forces_argmax']], axis=1).astype(np.int64) # max_zload_index
+        df_max[result_header[8]] = df_data.apply(lambda row: row['Z_forces_indices'][row['Z_forces_argmin']], axis=1).astype(np.int64) # min_zload_index
+        df_max[result_header[9]] = df_data.apply(lambda row: row['Right_web_indices'][row['Right_web_argmax']], axis=1).astype(np.int64) # right_web_index
+        df_max[result_header[10]] = df_data.apply(lambda row: row['Conv_norm_indices'][row['Conv_norm_argmax']], axis=1).astype(np.int64) # conv_norm_index
     
     if return_df_data:
         return df_max, df_data
@@ -156,7 +166,7 @@ def avz_to_df(avz_path, is_accident, is_nice=False):
     data_dicts = collect_avz_data(avz_path, blocks)
     df_model = model(avz_path, is_accident, is_nice)
     df_result = avz_result(data_dicts)
-    df_result['Utnyttelse [%]'] = df_result['Last [tonn]'] * 100 / df_model['Lastgrense [tonn]']
+    df_result['utilization'] = df_result[result_header[1]] * 100 / df_model[xml_header[0]]
     return pd.merge(df_model, df_result, left_index=True, right_index=True)
 
 def avz_env_mapping(avz_path):
