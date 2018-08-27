@@ -217,23 +217,22 @@ def direction(degrees, numeric=True):
 
 
 def read_key(key_path):
-	'''Reads relevant data from key.txt-file.
-	mass_w   ==> effective mass in water [kg]
-	mass     ==> mass [kg]
-	bouyancy ==> bouyancy [kg]
-	length   ==> length [m]'''
-	with open(key_path, "r") as file:
-	    header = ['ID', 'mass_w', 'mass', 'boyancy', 'L']
-	    lines = {name: [] for name in header}
-	    for line in file:
-	        if 'Component' in line:
-	            data = line.split()
-	            if len(data) == 6:
-	                lines[header[0]].append(int(data[1]))
-	                lines[header[-1]].append(float(data[-1]))
-	                for i in range(1, len(header)-1):
-	                    lines[header[i]].append(float(data[i+1])/g)
-	    
+    '''Reads relevant data from key.txt-file.
+    mass_w   ==> effective mass in water [kg]
+    mass     ==> mass [kg]
+    bouyancy ==> bouyancy [kg]
+    length   ==> length [m]'''
+    with open(key_path, "r") as file:
+        header = ['ID', 'mass_w', 'mass', 'boyancy', 'L']
+        lines = {name: [] for name in header}
+        for line in file:
+            if 'Component' in line:
+                data = line.split()
+                if len(data) == 6:
+                    lines[header[0]].append(int(data[1]))
+                    lines[header[-1]].append(float(data[-1]))
+                    for i in range(1, len(header)-1):
+                        lines[header[i]].append(float(data[i+1])/g)
     df_key = pd.DataFrame(lines)
     df_key.set_index('ID', inplace=True)
     return df_key
