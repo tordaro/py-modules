@@ -51,7 +51,7 @@ final_header = [
     'Min vertikal last [tonn]', 'Spenningsvidde [MPa]',
     'Konvergens', 'LT Last', 'LT maks vertikal last',
     'LT min vertikal last', 'LT spenningsvidde',
-    'LT konvergens', 'Utnyttelse [%]'
+    'LT konvergens', 'Utnyttelse [%]', 'MBL krav [tonn]'
 ]
 
 def model(path, is_accident, is_nice=False, to_clipboard=False):
@@ -167,6 +167,10 @@ def avz_to_df(avz_path, is_accident, is_nice=False):
     df_model = model(avz_path, is_accident, is_nice)
     df_result = avz_result(data_dicts)
     df_result['utilization'] = df_result[result_header[1]] * 100 / df_model[xml_header[0]]
+    if is_accident:
+        df_result['mbl_bound'] = df_result[result_header[0]] * df_model[xml_header[2]] / (1.5 * g * 1000)
+    else:
+        df_result['mbl_bound'] = df_result[result_header[0]] * df_model[xml_header[2]] * (1.15 / (g * 1000))
     return pd.merge(df_model, df_result, left_index=True, right_index=True)
 
 def avz_env_mapping(avz_path):
@@ -263,7 +267,7 @@ def collect_env(avz_path):
         env_data[current_keys[3]].append(float(current2.attrib["direction"]))
     return env_data
 
-def read_env_data(env_dict):
+def read_env_data(env_data):
     '''Treat environment data from dictionary
     and return it in a DataFrame.'''
     df_env = pd.DataFrame(env_data)
