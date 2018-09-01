@@ -284,7 +284,7 @@ def read_env_data(env_data):
     df_env['type'] = pd.Categorical(df_env['type'])
     return df_env[["sector", "waveamplitude", "waveperiod", "wind", "wind_direction",
                    "velocity_5", "direction_5", "velocity_15", "direction_15",
-                  'type', 'group', 'num_sector']]
+                  'type', 'group', 'num_sector', 'waveangle']]
 
 def avz_to_env(avz_path):
     return read_env_data(collect_env(avz_path))
