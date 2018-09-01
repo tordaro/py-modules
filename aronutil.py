@@ -191,6 +191,40 @@ def avz_env_mapping(avz_path):
     mapping = {i: file_name for i, file_name in enumerate(reversed(file_names), 1)}
     return mapping
 
+def summarize(df_list, ref_list):
+    '''Compares results pairwise.
+    Returns indexed summary from both.'''
+    assert len(df_list) == len(ref_list), 'Input lists must have same length.'
+
+    df1 = df_list.pop(0)
+    ref1 = ref_list.pop(0)
+    df_final = df1.copy(deep=True)
+    force_columns = (result_header[:2]
+                     + [result_header[5], 'utilization', 'mbl_bound'])
+
+    for df, ref in zip(df_list, ref_list):
+        # Filters
+        is_more_utilized = df['utilization'] > df_final['utilization']
+        is_bigger_vertical_max = df[result_header[2]] > df_final[result_header[2]] # max_zload
+        is_bigger_vertical_min = df[result_header[3]] > df_final[result_header[3]] # min_zload
+        #is_less_conv = df[result_header[5]] > df_final[result_header[5]] # conv_norm
+        # Update values
+        df_final.loc[is_more_utilized, force_columns] = df.loc[is_more_utilized, force_columns] # force dependent columns
+        df_final.loc[is_bigger_vertical_max, result_header[2]] = df.loc[is_bigger_vertical_max, result_header[2]] # max_zload
+        df_final.loc[is_bigger_vertical_min, result_header[3]] = df.loc[is_bigger_vertical_min, result_header[3]] # min_zload
+        # Update indices
+        df_final.loc[is_more_utilized, result_header[6]] = ref # force_index and conv_norm_index
+        df_final.loc[is_more_utilized, result_header[10]] = ref
+        df_final.loc[is_bigger_vertical_max, result_header[7]] = ref # max_zload_index
+        df_final.loc[is_bigger_vertical_min, result_header[8]] = ref # min_zload_index
+
+    index_columns = [result_header[6],
+                    result_header[7],
+                    result_header[8],
+                    result_header[10]]
+    df_final.loc[:, index_columns] = df_final.loc[:, index_columns].fillna(ref1) # Only necessary if first df is not intact state
+    return df_final
+
 def make_env_bins(series, num_env=None, make_plot=True, figsize=(10,6)):
     env_bins = np.unique(series, return_counts=True)
     
