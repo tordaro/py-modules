@@ -105,7 +105,7 @@ def collect_avz_data(avz_path, blocks):
             is_inside = False
             content = []
             data_dicts = {}
-            data_key = '' # Empty byte string
+            data_key = ''
             for line in file:
                 nice_line = line.decode('Latin-1').strip()
                 for block_name in blocks:
