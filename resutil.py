@@ -260,7 +260,7 @@ def read_key(key_path):
     mass     ==> mass [kg]
     bouyancy ==> bouyancy [kg]
     length   ==> length [m]'''
-    with open(key_path, "r") as file:
+    with open(key_path, 'r') as file:
         header = ['ID', 'mass_w', 'mass', 'boyancy', 'L']
         lines = {name: [] for name in header}
         for line in file:
