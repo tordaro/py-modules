@@ -2,7 +2,7 @@
 """
 @author: tordaronsen
 """
-import aronutil
+import resutil
 import pandas as pd
 import numpy as np
 import tabula as tb
@@ -43,8 +43,8 @@ def make_env_AP(path, decimal=b',', col_names=None):
                      'Hs_50', 'Tp_50']
     AP_env.columns = col_names
 
-    AP_env["himmelretning"] = AP_env["retning_vind"].apply(aronutil.direction)
-    AP_env["sektor"] = AP_env["retning_vind"].apply(lambda r: aronutil.direction(r, numeric=False))
+    AP_env["himmelretning"] = AP_env["retning_vind"].apply(resutil.direction)
+    AP_env["sektor"] = AP_env["retning_vind"].apply(lambda r: resutil.direction(r, numeric=False))
     idx_df = AP_env.groupby("himmelretning").idxmax()
 
     env105050 = pd.DataFrame({
@@ -145,7 +145,7 @@ def read_mc_waves(path):
             mc_wave_data[nice_list[0]] = [float(val) for val in nice_list[1:]]
 
     mc_waves = {
-        "Sektor": np.array([aronutil.direction(val, False) for val in mc_wave_data["retning_vind"]] * 2),
+        "Sektor": np.array([resutil.direction(val, False) for val in mc_wave_data["retning_vind"]] * 2),
         "Hs [m]": np.array(mc_wave_data["Hs_10"] + mc_wave_data["Hs_50"]),
         "Tp [s]": np.array(mc_wave_data["Tp_10"] + mc_wave_data["Tp_50"]),
         "Vind [m/s]": np.array(mc_wave_data["vind_10"] + mc_wave_data["vind_50"]),
