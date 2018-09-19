@@ -19,10 +19,10 @@ def get_header(flavor):
             "tp",
             "vind",
             "vindretn",
-            "strøm5",
-            "strøm5retn",
-            "strøm15",
-            "strøm15retn",
+            "strom5",
+            "strom5retn",
+            "strom15",
+            "strom15retn",
             "steilhet"
         ]
         return practical_header
@@ -78,10 +78,10 @@ def make_env_AP(path, decimal=b',', col_names=None):
     properly formatted DataFrame.'''
     AP_env = pd.read_csv(path, decimal=decimal, header=None)
     if not col_names:
-        col_names = ['retning_strøm',
-                     '_målt_5', '_strøm_5_10', '_strøm_5_50',
+        col_names = ['retning_strom',
+                     '_målt_5', '_strom_5_10', '_strom_5_50',
                      'justert_5_10', 'justert_5_50',
-                     '_målt_15', '_strøm_15_10', '_strøm_15_50',
+                     '_målt_15', '_strom_15_10', '_strom_15_50',
                      'justert_15_10', 'justert_15_50',
                      'retning_vind',
                      'vind_10', 'vind_50',
@@ -94,54 +94,54 @@ def make_env_AP(path, decimal=b',', col_names=None):
     idx_df = AP_env.groupby("himmelretning").idxmax()
 
     env105050 = pd.DataFrame({
-        "Sektor": AP_env["sektor"][idx_df["Hs_10"]].values,
-        "Hs [m]": AP_env["Hs_10"][idx_df["Hs_10"]].values,
-        "Tp [s]": AP_env["Tp_10"][idx_df["Hs_10"]].values,
-        "Vind [m/s]": AP_env["vind_10"][idx_df["Hs_10"]].values,
-        "Vind [\N{DEGREE SIGN}]": AP_env["retning_vind"][idx_df["Hs_10"]].values,
-        "Strøm 5 m [m/s]": AP_env["justert_5_50"][idx_df["justert_5_50"]].values / 100,
-        "Strøm 5 m [\N{DEGREE SIGN}]": AP_env["retning_strøm"][idx_df["justert_5_50"]].values,
-        "Strøm 15 m [m/s]": AP_env["justert_15_50"][idx_df["justert_15_50"]].values / 100,
-        "Strøm 15 m [\N{DEGREE SIGN}]": AP_env["retning_strøm"][idx_df["justert_15_50"]].values
+        "sektor": AP_env["sektor"][idx_df["Hs_10"]].values,
+        "hs": AP_env["Hs_10"][idx_df["Hs_10"]].values,
+        "tp": AP_env["Tp_10"][idx_df["Hs_10"]].values,
+        "vind": AP_env["vind_10"][idx_df["Hs_10"]].values,
+        "vindretn": AP_env["retning_vind"][idx_df["Hs_10"]].values,
+        "strom5": AP_env["justert_5_50"][idx_df["justert_5_50"]].values / 100,
+        "strom5retn": AP_env["retning_strom"][idx_df["justert_5_50"]].values,
+        "strom15": AP_env["justert_15_50"][idx_df["justert_15_50"]].values / 100,
+        "strom15retn": AP_env["retning_strom"][idx_df["justert_15_50"]].values
     })
 
     env501010 = pd.DataFrame({
-        "Sektor": AP_env["sektor"][idx_df["Hs_50"]].values,
-        "Hs [m]": AP_env["Hs_50"][idx_df["Hs_50"]].values,
-        "Tp [s]": AP_env["Tp_50"][idx_df["Hs_50"]].values,
-        "Vind [m/s]": AP_env["vind_50"][idx_df["Hs_50"]].values,
-        "Vind [\N{DEGREE SIGN}]": AP_env["retning_vind"][idx_df["Hs_50"]].values,
-        "Strøm 5 m [m/s]": AP_env["justert_5_10"][idx_df["justert_5_10"]].values / 100,
-        "Strøm 5 m [\N{DEGREE SIGN}]": AP_env["retning_strøm"][idx_df["justert_5_10"]].values,
-        "Strøm 15 m [m/s]": AP_env["justert_15_10"][idx_df["justert_15_10"]].values / 100,
-        "Strøm 15 m [\N{DEGREE SIGN}]": AP_env["retning_strøm"][idx_df["justert_15_10"]].values
+        "sektor": AP_env["sektor"][idx_df["Hs_50"]].values,
+        "hs": AP_env["Hs_50"][idx_df["Hs_50"]].values,
+        "tp": AP_env["Tp_50"][idx_df["Hs_50"]].values,
+        "vind": AP_env["vind_50"][idx_df["Hs_50"]].values,
+        "vindretn": AP_env["retning_vind"][idx_df["Hs_50"]].values,
+        "strom5": AP_env["justert_5_10"][idx_df["justert_5_10"]].values / 100,
+        "strom5retn": AP_env["retning_strom"][idx_df["justert_5_10"]].values,
+        "strom15": AP_env["justert_15_10"][idx_df["justert_15_10"]].values / 100,
+        "strom15retn": AP_env["retning_strom"][idx_df["justert_15_10"]].values
     })
 
     if "Hs_10_hav" in AP_env:
         idx_df_hav = idx_df.dropna()
 
         env105050_hav = pd.DataFrame({
-            "Sektor": AP_env["sektor"][idx_df_hav["Hs_10_hav"]].values,
-            "Hs [m]": AP_env["Hs_10_hav"][idx_df_hav["Hs_10_hav"]].values,
-            "Tp [s]": AP_env["Tp_10_hav"][idx_df_hav["Hs_10_hav"]].values,
-            "Vind [m/s]": AP_env["vind_10"][idx_df_hav["Hs_10_hav"]].values,
-            "Vind [\N{DEGREE SIGN}]": AP_env["retning_vind"][idx_df_hav["Hs_50_hav"]].values,
-            "Strøm 5 m [m/s]": AP_env["justert_5_50"][idx_df_hav["justert_5_50"]].values / 100,
-            "Strøm 5 m [\N{DEGREE SIGN}]": AP_env["retning_strøm"][idx_df_hav["justert_5_50"]].values,
-            "Strøm 15 m [m/s]": AP_env["justert_15_50"][idx_df_hav["justert_15_50"]].values / 100,
-            "Strøm 15 m [\N{DEGREE SIGN}]": AP_env["retning_strøm"][idx_df_hav["justert_15_50"]].values
+            "sektor": AP_env["sektor"][idx_df_hav["Hs_10_hav"]].values,
+            "hs": AP_env["Hs_10_hav"][idx_df_hav["Hs_10_hav"]].values,
+            "tp": AP_env["Tp_10_hav"][idx_df_hav["Hs_10_hav"]].values,
+            "vind": AP_env["vind_10"][idx_df_hav["Hs_10_hav"]].values,
+            "vindretn": AP_env["retning_vind"][idx_df_hav["Hs_50_hav"]].values,
+            "strom5": AP_env["justert_5_50"][idx_df_hav["justert_5_50"]].values / 100,
+            "strom5retn": AP_env["retning_strom"][idx_df_hav["justert_5_50"]].values,
+            "strom15": AP_env["justert_15_50"][idx_df_hav["justert_15_50"]].values / 100,
+            "strom15retn": AP_env["retning_strom"][idx_df_hav["justert_15_50"]].values
         })
 
         env501010_hav = pd.DataFrame({
-            "Sektor": AP_env["sektor"][idx_df_hav["Hs_50_hav"]].values,
-            "Hs [m]": AP_env["Hs_50_hav"][idx_df_hav["Hs_50_hav"]].values,
-            "Tp [s]": AP_env["Tp_50_hav"][idx_df_hav["Hs_50_hav"]].values,
-            "Vind [m/s]": AP_env["vind_50"][idx_df_hav["Hs_50_hav"]].values,
-            "Vind [\N{DEGREE SIGN}]": AP_env["retning_vind"][idx_df_hav["Hs_50_hav"]].values,
-            "Strøm 5 m [m/s]": AP_env["justert_5_10"][idx_df_hav["justert_5_10"]].values / 100,
-            "Strøm 5 m [\N{DEGREE SIGN}]": AP_env["retning_strøm"][idx_df_hav["justert_5_10"]].values,
-            "Strøm 15 m [m/s]": AP_env["justert_15_10"][idx_df_hav["justert_15_10"]].values / 100,
-            "Strøm 15 m [\N{DEGREE SIGN}]": AP_env["retning_strøm"][idx_df_hav["justert_15_10"]].values
+            "sektor": AP_env["sektor"][idx_df_hav["Hs_50_hav"]].values,
+            "hs": AP_env["Hs_50_hav"][idx_df_hav["Hs_50_hav"]].values,
+            "tp": AP_env["Tp_50_hav"][idx_df_hav["Hs_50_hav"]].values,
+            "vind": AP_env["vind_50"][idx_df_hav["Hs_50_hav"]].values,
+            "vindretn": AP_env["retning_vind"][idx_df_hav["Hs_50_hav"]].values,
+            "strom5": AP_env["justert_5_10"][idx_df_hav["justert_5_10"]].values / 100,
+            "strom5retn": AP_env["retning_strom"][idx_df_hav["justert_5_10"]].values,
+            "strom15": AP_env["justert_15_10"][idx_df_hav["justert_15_10"]].values / 100,
+            "strom15retn": AP_env["retning_strom"][idx_df_hav["justert_15_10"]].values
         })
 
         env105050_hav.index += env501010.index[-1] + 1
@@ -151,17 +151,17 @@ def make_env_AP(path, decimal=b',', col_names=None):
     env105050.index += 1
     env501010.index += 9
     env_final = pd.concat([env105050, env501010])
-    env_final["Steilhet"] = (env_final["Tp [s]"]**2 / env_final["Hs [m]"]) * (pi / (1.9 * 2))
+    env_final["Steilhet"] = (env_final["tp"]**2 / env_final["hs"]) * (pi / (1.9 * 2))
     return env_final
 
 def init_mc_current():
     '''Return initialized dictionary.
     Ready to be loaded with data.'''
     mc_current = {
-        "Strøm 5 m [m/s]": np.zeros(16),
-        "Strøm 5 m [\N{DEGREE SIGN}]": np.zeros(16),
-        "Strøm 15 m [m/s]": np.zeros(16),
-        "Strøm 15 m [\N{DEGREE SIGN}]": np.zeros(16)
+        "strom5": np.zeros(16),
+        "strom5retn": np.zeros(16),
+        "strom15": np.zeros(16),
+        "strom15retn": np.zeros(16)
     }
     return mc_current
     
@@ -173,11 +173,11 @@ def load_mc_current(path, depth, data_dict):
         for i, line in enumerate(file):
             nice_list = line.decode("CP1252").split()
 
-            data_dict["Strøm {} m [m/s]".format(depth)][(i+4) % 8] = float(nice_list[-1])
-            data_dict["Strøm {} m [\N{DEGREE SIGN}]".format(depth)][(i+4) % 8] = float(nice_list[1])
+            data_dict["strom{}".format(depth)][(i+4) % 8] = float(nice_list[-1])
+            data_dict["strom{}retn".format(depth)][(i+4) % 8] = float(nice_list[1])
 
-            data_dict["Strøm {} m [m/s]".format(depth)][(i+4) % 8 + 8] = float(nice_list[-2])
-            data_dict["Strøm {} m [\N{DEGREE SIGN}]".format(depth)][(i+4) % 8 + 8] = float(nice_list[1])
+            data_dict["strom{}".format(depth)][(i+4) % 8 + 8] = float(nice_list[-2])
+            data_dict["strom{}retn".format(depth)][(i+4) % 8 + 8] = float(nice_list[1])
 
 
 def read_mc_waves(path):
@@ -191,11 +191,11 @@ def read_mc_waves(path):
             mc_wave_data[nice_list[0]] = [float(val) for val in nice_list[1:]]
 
     mc_waves = {
-        "Sektor": np.array([resutil.direction(val, False) for val in mc_wave_data["retning_vind"]] * 2),
-        "Hs [m]": np.array(mc_wave_data["Hs_10"] + mc_wave_data["Hs_50"]),
-        "Tp [s]": np.array(mc_wave_data["Tp_10"] + mc_wave_data["Tp_50"]),
-        "Vind [m/s]": np.array(mc_wave_data["vind_10"] + mc_wave_data["vind_50"]),
-        "Vind [\N{DEGREE SIGN}]": np.array(mc_wave_data["retning_vind"] * 2)
+        "sektor": np.array([resutil.direction(val, False) for val in mc_wave_data["retning_vind"]] * 2),
+        "hs": np.array(mc_wave_data["Hs_10"] + mc_wave_data["Hs_50"]),
+        "tp": np.array(mc_wave_data["Tp_10"] + mc_wave_data["Tp_50"]),
+        "vind": np.array(mc_wave_data["vind_10"] + mc_wave_data["vind_50"]),
+        "vindretn": np.array(mc_wave_data["retning_vind"] * 2)
     }
     return mc_waves
 
@@ -213,13 +213,13 @@ def read_mc_ocean_waves(path, env_df):
     lt = ([int(val) for val in mc_ocean_data["lt_10"]]
           + [int(val) for val in mc_ocean_data["lt_50"]])
     mc_ocean_waves = {
-        "Hs [m]": np.array(mc_ocean_data["Hs_10"] + mc_ocean_data["Hs_50"]),
-        "Tp [s]": np.array(mc_ocean_data["Tp_10"] + mc_ocean_data["Tp_50"])
+        "hs": np.array(mc_ocean_data["Hs_10"] + mc_ocean_data["Hs_50"]),
+        "tp": np.array(mc_ocean_data["Tp_10"] + mc_ocean_data["Tp_50"])
     }
     
     ocean_df = env_df.loc[lt]
-    ocean_df.loc[lt, "Hs [m]"] = mc_ocean_waves["Hs [m]"]
-    ocean_df.loc[lt, "Tp [s]"] = mc_ocean_waves["Tp [s]"]
+    ocean_df.loc[lt, "hs"] = mc_ocean_waves["hs"]
+    ocean_df.loc[lt, "tp"] = mc_ocean_waves["tp"]
     ocean_df.reset_index(inplace=True, drop=True)
     ocean_df.index += env_df.index[-1] + 1
     return ocean_df
@@ -236,11 +236,11 @@ def make_env_mc(waves_path, current_path_1, current_path_2, current_depths=[5,15
     
     env_final = pd.DataFrame({**mc_waves, **mc_current})
     env_final.index += 1
-    env_final["Steilhet"] = (env_final["Tp [s]"]**2 / env_final["Hs [m]"]) * (pi / (1.9 * 2))
+    env_final["Steilhet"] = (env_final["tp"]**2 / env_final["hs"]) * (pi / (1.9 * 2))
     
     if ocean_path:
         ocean_env = read_mc_ocean_waves(ocean_path, env_final)
-        ocean_env["Steilhet"] = (ocean_env["Tp [s]"]**2 / ocean_env["Hs [m]"]) * (pi / (1.9 * 2))
+        ocean_env["Steilhet"] = (ocean_env["tp"]**2 / ocean_env["hs"]) * (pi / (1.9 * 2))
         return pd.concat([env_final, ocean_env])
     else:
         return env_final
@@ -252,13 +252,13 @@ def ae_input(env_df):
     ae_env["sys_heading"] = 90
     order = [
         "sys_heading",
-        "Hs [m]",
-        "Tp [s]",
-        "Vind [\N{DEGREE SIGN}]",
-        "Strøm 5 m [m/s]",
-        "Strøm 5 m [\N{DEGREE SIGN}]",
-        "Vind [m/s]",
-        "Strøm 15 m [m/s]",
-        "Strøm 15 m [\N{DEGREE SIGN}]"
+        "hs",
+        "tp",
+        "vindretn",
+        "strom5",
+        "strom5retn",
+        "vind",
+        "strom15",
+        "strom15retn"
     ]
     return ae_env[order]
