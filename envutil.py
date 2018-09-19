@@ -9,6 +9,52 @@ import tabula as tb
 from time import time
 from scipy.constants import pi
 
+def get_header(flavor):
+    '''Get new header with a 
+    different flavor.'''
+    if flavor == "practical":
+        practical_header = [
+            "sektor",
+            "hs",
+            "tp",
+            "vind",
+            "vindretn",
+            "strøm5",
+            "strøm5retn",
+            "strøm15",
+            "strøm15retn",
+            "steilhet"
+        ]
+        return practical_header
+    elif flavor == "nice":
+        nice_header = [
+            'Sektor',
+            'Hs [m]',
+            'Tp [s]',
+            'Vind [m/s]',
+            'Vind [\N{DEGREE SIGN}]',
+            'Strøm 5 m [m/s]',
+            'Strøm 5 m [\N{DEGREE SIGN}]',
+            'Strøm 15 m [m/s]',
+            'Strøm 15 m [\N{DEGREE SIGN}]',
+            'Steilhet'
+        ]
+        return nice_header
+    elif flavor == "latex":
+        latex_header = [
+            'Sektor',
+            '$H_s$ [m]',
+            '$T_p$ [s]',
+            '$U_r$ [m/s]',
+            '$U_{\\theta}$ [$^\\circ$]',
+            '$V_{5,r}$ [m/s]',
+            '$V_{5,\\theta}$ [$^\\circ$]',
+            '$V_{15,r}$ [m/s]',
+            '$V_{15,\\theta}$ [$^\\circ$]',
+            'Steilhet'
+        ]
+        return latex_header
+
 def collect_APenv_data(path, num_cols, encoding="Latin-1"):
     '''Reads Akvaplan-Niva environmental data from .txt-file,
     and returns a dictionary with the data. The first num_cols
