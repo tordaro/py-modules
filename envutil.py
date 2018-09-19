@@ -198,3 +198,21 @@ def make_env_mc(waves_path, current_path_1, current_path_2, current_depths=[5,15
         return pd.concat([env_final, ocean_env])
     else:
         return env_final
+
+def ae_input(env_df):
+    '''Take treated environment
+    and return AE friendly environment.'''
+    ae_env = env_df.copy(deep=True)
+    ae_env["sys_heading"] = 90
+    order = [
+        "sys_heading",
+        "Hs [m]",
+        "Tp [s]",
+        "Vind [\N{DEGREE SIGN}]",
+        "Strøm 5 m [m/s]",
+        "Strøm 5 m [\N{DEGREE SIGN}]",
+        "Vind [m/s]",
+        "Strøm 15 m [m/s]",
+        "Strøm 15 m [\N{DEGREE SIGN}]"
+    ]
+    return ae_env[order]
