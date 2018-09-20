@@ -151,7 +151,7 @@ def make_env_AP(path, decimal=b',', col_names=None):
     env105050.index += 1
     env501010.index += 9
     env_final = pd.concat([env105050, env501010])
-    env_final["Steilhet"] = (env_final["tp"]**2 / env_final["hs"]) * (pi / (1.9 * 2))
+    env_final["steilhet"] = (env_final["tp"]**2 / env_final["hs"]) * (pi / (1.9 * 2))
     return env_final
 
 def init_mc_current():
@@ -236,11 +236,11 @@ def make_env_mc(waves_path, current_path_1, current_path_2, current_depths=[5,15
     
     env_final = pd.DataFrame({**mc_waves, **mc_current})
     env_final.index += 1
-    env_final["Steilhet"] = (env_final["tp"]**2 / env_final["hs"]) * (pi / (1.9 * 2))
+    env_final["steilhet"] = (env_final["tp"]**2 / env_final["hs"]) * (pi / (1.9 * 2))
     
     if ocean_path:
         ocean_env = read_mc_ocean_waves(ocean_path, env_final)
-        ocean_env["Steilhet"] = (ocean_env["tp"]**2 / ocean_env["hs"]) * (pi / (1.9 * 2))
+        ocean_env["steilhet"] = (ocean_env["tp"]**2 / ocean_env["hs"]) * (pi / (1.9 * 2))
         return pd.concat([env_final, ocean_env])
     else:
         return env_final
