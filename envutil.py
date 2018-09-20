@@ -191,11 +191,12 @@ def read_mc_waves(path):
             mc_wave_data[nice_list[0]] = [float(val) for val in nice_list[1:]]
 
     mc_waves = {
-        "sektor": np.array([resutil.direction(val, False) for val in mc_wave_data["retning_vind"]] * 2),
+        "sektor": np.array([resutil.direction(val, False) 
+            for val in mc_wave_data["retning_vind_10"] + mc_wave_data["retning_vind_10"]]),
         "hs": np.array(mc_wave_data["Hs_10"] + mc_wave_data["Hs_50"]),
         "tp": np.array(mc_wave_data["Tp_10"] + mc_wave_data["Tp_50"]),
         "vind": np.array(mc_wave_data["vind_10"] + mc_wave_data["vind_50"]),
-        "vindretn": np.array(mc_wave_data["retning_vind"] * 2)
+        "vindretn": np.array(mc_wave_data["retning_vind_10"] + mc_wave_data["retning_vind_50"])
     }
     return mc_waves
 

@@ -196,13 +196,13 @@ def summarize(df_list, ref_list):
     Returns indexed summary from both.'''
     assert len(df_list) == len(ref_list), 'Input lists must have same length.'
 
-    df1 = df_list.pop(0)
-    ref1 = ref_list.pop(0)
+    df1 = df_list[0]
+    ref1 = ref_list[0]
     df_final = df1.copy(deep=True)
     force_columns = (result_header[:2]
                      + [result_header[5], 'utilization', 'mbl_bound'])
 
-    for df, ref in zip(df_list, ref_list):
+    for df, ref in zip(df_list[1:], ref_list[1:]):
         # Filters
         is_more_utilized = df['utilization'] > df_final['utilization']
         is_bigger_vertical_max = df[result_header[2]] > df_final[result_header[2]] # max_zload
