@@ -253,6 +253,17 @@ def direction(degrees, numeric=True):
             return interval_name[i+1]
     return interval_name[0]
 
+def categorize_by_id(id_list, group_names):
+    '''Function that categorizes all components
+    by given ID interval.'''
+    assert len(group_names) == len(id_list) - 1,\
+    'id_list has {} elements, should have {} elements.'.format(len(id_list), len(group_names)+1)
+    
+    groups = []
+    for i in range(len(group_names)):
+        groups.extend([group_names[i]] * (id_list[i+1] - id_list[i]))
+    
+    return groups
 
 def read_key(key_path):
     '''Reads relevant data from key.txt-file.
