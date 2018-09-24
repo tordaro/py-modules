@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 import tabula as tb
 from time import time
-from scipy.constants import pi
+from scipy.constants import pi, g
 
 def get_header(flavor):
     '''Get new header with a 
@@ -151,7 +151,7 @@ def make_env_AP(path, decimal=b',', col_names=None):
     env105050.index += 1
     env501010.index += 9
     env_final = pd.concat([env105050, env501010])
-    env_final["steilhet"] = (env_final["tp"]**2 / env_final["hs"]) * (pi / (1.9 * 2))
+    env_final["steilhet"] = (env_final["tp"]**2 / env_final["hs"]) * (g / (1.9 * 2 * pi))
     return env_final
 
 def init_mc_current():
@@ -237,11 +237,11 @@ def make_env_mc(waves_path, current_path_1, current_path_2, current_depths=[5,15
     
     env_final = pd.DataFrame({**mc_waves, **mc_current})
     env_final.index += 1
-    env_final["steilhet"] = (env_final["tp"]**2 / env_final["hs"]) * (pi / (1.9 * 2))
+    env_final["steilhet"] = (env_final["tp"]**2 / env_final["hs"]) * (g / (1.9 * 2 * pi))
     
     if ocean_path:
         ocean_env = read_mc_ocean_waves(ocean_path, env_final)
-        ocean_env["steilhet"] = (ocean_env["tp"]**2 / ocean_env["hs"]) * (pi / (1.9 * 2))
+        ocean_env["steilhet"] = (ocean_env["tp"]**2 / ocean_env["hs"]) * (g / (1.9 * 2 * pi))
         return pd.concat([env_final, ocean_env])
     else:
         return env_final
