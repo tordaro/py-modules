@@ -333,3 +333,23 @@ def read_env_data(env_data):
 
 def avz_to_env(avz_path):
     return read_env_data(collect_env(avz_path))
+
+def lt_summary(df_list, ref_list, num_lt=16, plot=True, figsize=(16,10)):
+    '''Make barplot of force index from each df.
+    If plot is False, a DataFrame with the summary
+    is returned.'''
+    indices = pd.DataFrame(np.zeros((num_lt, len(df_list))))
+    indices.index += 1
+    indices.columns = ref_list
+    for df, ref in zip(df_list, ref_list):
+        bins = np.unique(df.force_index, return_counts=True)
+        indices.loc[bins[0] ,ref] = bins[1]
+    
+    if plot:
+        indices.plot.bar(figsize=figsize, rot=0)
+        plt.xlabel("Lasttilfelle", size=15)
+        plt.ylabel("Komponenter", size=15)
+        plt.savefig("../Figurer/lt.png", format="png")
+        plt.show()
+    else:
+        return indices
