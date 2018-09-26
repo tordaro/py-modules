@@ -13,4 +13,6 @@ TODO summarize() should index with reference and LT as tuple: (reference, LT), o
 
 TODO summarize() must update load_limit as well.
 
+TODO make mapping for headers! Solves all problems!
+
 CONSIDER Object orient each configuration/fleet. Everything that belongs to a configuration/fleet is stored in an object.
