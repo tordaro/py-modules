@@ -34,25 +34,50 @@ block_map =  {
     blocks[7]: 'Conv_norm_indices'
 }
 
-xml_header = [
-    'load_limit', 'edit_id', 'materialcoeff',
-    'mbl', 'name', 'component', 'material', 'id'
-]
-result_header = [
-    'force', 'load', 'max_zload',
-    'min_zload', 'right_web', 'conv_norm',
-    'force_index', 'max_zload_index', 'min_zload_index',
-    'right_web_index', 'conv_norm_index'
-]
-final_header = [
-    'Lastgrensen [tonn]', 'Edit ID', 'Materialkoeffisient',
-    'MBL [tonn]', 'Navn', 'Komponent', 'Materiale', 'Gruppe',
-    'Kraft [N]', 'Last [tonn]', 'Maks vertikal last [tonn]',
-    'Min vertikal last [tonn]', 'Spenningsvidde [MPa]',
-    'Konvergens', 'LT Last', 'LT maks vertikal last',
-    'LT min vertikal last', 'LT spenningsvidde',
-    'LT konvergens', 'Utnyttelse [%]', 'MBL krav [tonn]'
-]
+def map_header(df_result):
+    '''Maps columns names from internal ones
+    to pretty ones.'''
+    internal_header = [
+        'load_limit', 'edit_id', 'materialcoeff',
+        'mbl', 'name', 'component', 'material', 'group',
+        'force', 'load', 'max_zload',
+        'min_zload', 'right_web', 'conv_norm',
+        'force_index', 'max_zload_index', 'min_zload_index',
+        'right_web_index', 'conv_norm_index', 'utilization',
+        'mbl_bound', 'mass_w', 'mass', 'boyancy', 'length'
+    ]
+    pretty_header = [
+        'Lastgrensen [tonn]', 'Edit ID', 'Materialkoeffisient',
+        'MBL [tonn]', 'Navn', 'Komponent', 'Materiale', 'Gruppe',
+        'Kraft [N]', 'Last [tonn]', 'Maks vertikal last [tonn]',
+        'Min vertikal last [tonn]', 'Spenningsvidde [MPa]',
+        'Konvergens', 'LT Last', 'LT maks vertikal last',
+        'LT min vertikal last', 'LT spenningsvidde',
+        'LT konvergens', 'Utnyttelse [%]', 'MBL krav [tonn]',
+        'MBL-krav [tonn]', 'Effektiv masse [kg]',
+        'Oppdrift [kg]', 'Lengde [m]'
+    ]
+    header_mapping = dict(zip(internal_header, pretty_header))
+    df_pretty = df_result.copy()
+    df_pretty.columns = df_result.columns.map(header_mapping)
+    return df_pretty
+
+
+def reorder_and_filter(df_result):
+    '''Reorder the columns and exclude
+    uninteresting ones.'''
+    desired_order = [
+        'component', 'group', 'material',
+        'materialcoeff', 'length', 'mass',
+        'mbl', 'mbl_bound', 'load', 'load_limit',
+        'utilization', 'min_zload', 'max_zload',
+        'right_web', 'conv_norm', 'force_index', 
+        'max_zload_index', 'min_zload_index',
+        'right_web_index', 'conv_norm_index',
+    ]
+    allowed_headers = [name for name in desired_order if name in df_result.columns]
+    return df_result[allowed_headers]
+
 
 def model(path, is_accident, is_nice=False, to_clipboard=False):
     '''is_nice is true when names are clever (or nice!). 
@@ -71,6 +96,10 @@ def model(path, is_accident, is_nice=False, to_clipboard=False):
         print('Input file must be either .avz or .xml.')
         return None
     
+    xml_header = [
+    'load_limit', 'edit_id', 'materialcoeff',
+    'mbl', 'name', 'component', 'material', 'id'
+    ]
     model = {header: [] for header in xml_header}
     for comp in root.iter('component'):
         mcoeff      = float(comp.attrib['materialcoeff'])
@@ -98,6 +127,7 @@ def model(path, is_accident, is_nice=False, to_clipboard=False):
     
     return df_model
 
+
 def collect_avz_data(avz_path, blocks):
     '''Parse data from file to a dictionary.'''
     with zipfile.ZipFile(avz_path) as zfile:
@@ -124,6 +154,7 @@ def collect_avz_data(avz_path, blocks):
                     content.append(nice_line)
     return data_dicts
 
+
 def avz_result(data_dicts, return_df_data=False):
     '''Make DataFrame from data Dictionary. 
     If return_df_data is true, df_data DataFrame is also returned.'''
@@ -142,36 +173,38 @@ def avz_result(data_dicts, return_df_data=False):
     
     df_max = pd.DataFrame(index=df_data.index)
     df_max.index.name = 'id'
-    df_max[result_header[0]] = df_data.apply(lambda row: row['Forces'][row['Forces_argmax']], axis=1) # force
-    df_max[result_header[1]] = df_max[result_header[0]] / (g * 1000) # load
-    df_max[result_header[2]] = df_data.apply(lambda row: row['Z_forces'][row['Z_forces_argmax']], axis=1) / (g * 1000) # max_zload
-    df_max[result_header[3]] = df_data.apply(lambda row: row['Z_forces'][row['Z_forces_argmin']], axis=1) / (g * 1000) # min_zload
-    df_max[result_header[4]] = df_data.apply(lambda row: row['Right_web'][row['Right_web_argmax']], axis=1) # right_web
-    df_max[result_header[5]] = df_data.apply(lambda row: row['Conv_norm'][row['Conv_norm_argmax']], axis=1) # conv_norm
+    df_max['force'] = df_data.apply(lambda row: row['Forces'][row['Forces_argmax']], axis=1)
+    df_max['load'] = df_max['force'] / (g * 1000)
+    df_max['max_zload'] = df_data.apply(lambda row: row['Z_forces'][row['Z_forces_argmax']], axis=1) / (g * 1000)
+    df_max['min_zload'] = df_data.apply(lambda row: row['Z_forces'][row['Z_forces_argmin']], axis=1) / (g * 1000)
+    df_max['right_web'] = df_data.apply(lambda row: row['Right_web'][row['Right_web_argmax']], axis=1)
+    df_max['conv_norm'] = df_data.apply(lambda row: row['Conv_norm'][row['Conv_norm_argmax']], axis=1)
     
     if 'Force_indices' in data_dicts.keys(): # Enough to only check for Force_indices
-        df_max[result_header[6]] = df_data.apply(lambda row: row['Force_indices'][row['Forces_argmax']], axis=1).astype(np.int64) # force_index
-        df_max[result_header[7]] = df_data.apply(lambda row: row['Z_forces_indices'][row['Z_forces_argmax']], axis=1).astype(np.int64) # max_zload_index
-        df_max[result_header[8]] = df_data.apply(lambda row: row['Z_forces_indices'][row['Z_forces_argmin']], axis=1).astype(np.int64) # min_zload_index
-        df_max[result_header[9]] = df_data.apply(lambda row: row['Right_web_indices'][row['Right_web_argmax']], axis=1).astype(np.int64) # right_web_index
-        df_max[result_header[10]] = df_data.apply(lambda row: row['Conv_norm_indices'][row['Conv_norm_argmax']], axis=1).astype(np.int64) # conv_norm_index
+        df_max['force_index'] = df_data.apply(lambda row: row['Force_indices'][row['Forces_argmax']], axis=1).astype(np.int64)
+        df_max['max_zload_index'] = df_data.apply(lambda row: row['Z_forces_indices'][row['Z_forces_argmax']], axis=1).astype(np.int64)
+        df_max['min_zload_index'] = df_data.apply(lambda row: row['Z_forces_indices'][row['Z_forces_argmin']], axis=1).astype(np.int64)
+        df_max['right_web_index'] = df_data.apply(lambda row: row['Right_web_indices'][row['Right_web_argmax']], axis=1).astype(np.int64)
+        df_max['conv_norm_index'] = df_data.apply(lambda row: row['Conv_norm_indices'][row['Conv_norm_argmax']], axis=1).astype(np.int64)
     
     if return_df_data:
         return df_max, df_data
     else:
         return df_max
 
+
 def avz_to_df(avz_path, is_accident, is_nice=False):
     '''Get a complete DataFrame from .avz-file.'''
     data_dicts = collect_avz_data(avz_path, blocks)
     df_model = model(avz_path, is_accident, is_nice)
     df_result = avz_result(data_dicts)
-    df_result['utilization'] = df_result[result_header[1]] * 100 / df_model[xml_header[0]]
+    df_result['utilization'] = df_result['load'] * 100 / df_model['load_limit']
     if is_accident:
-        df_result['mbl_bound'] = df_result[result_header[0]] * df_model[xml_header[2]] / (1.5 * g * 1000)
+        df_result['mbl_bound'] = df_result['force'] * df_model['materialcoeff'] / (1.5 * g * 1000)
     else:
-        df_result['mbl_bound'] = df_result[result_header[0]] * df_model[xml_header[2]] * (1.15 / (g * 1000))
+        df_result['mbl_bound'] = df_result['force'] * df_model['materialcoeff'] * (1.15 / (g * 1000))
     return pd.merge(df_model, df_result, left_index=True, right_index=True)
+
 
 def avz_env_mapping(avz_path):
     '''Create mapping from environment index back to file names.'''
@@ -191,6 +224,7 @@ def avz_env_mapping(avz_path):
     mapping = {i: file_name for i, file_name in enumerate(reversed(file_names), 1)}
     return mapping
 
+
 def summarize(df_list, ref_list):
     '''Compares results pairwise.
     Returns indexed summary from both.'''
@@ -199,31 +233,32 @@ def summarize(df_list, ref_list):
     df1 = df_list[0]
     ref1 = ref_list[0]
     df_final = df1.copy(deep=True)
-    force_columns = (result_header[:2]
-                     + [result_header[5], 'utilization', 'mbl_bound'])
+    force_columns = ['force', 'load', 'load_limit',
+                    'conv_norm', 'utilization', 'mbl_bound']
 
     for df, ref in zip(df_list[1:], ref_list[1:]):
         # Filters
         is_more_utilized = df['utilization'] > df_final['utilization']
-        is_bigger_vertical_max = df[result_header[2]] > df_final[result_header[2]] # max_zload
-        is_bigger_vertical_min = df[result_header[3]] > df_final[result_header[3]] # min_zload
-        #is_less_conv = df[result_header[5]] > df_final[result_header[5]] # conv_norm
+        is_bigger_vertical_max = df['max_zload'] > df_final['max_zload'] # max_zload
+        is_bigger_vertical_min = df['min_zload'] > df_final['min_zload'] # min_zload
+        #is_less_conv = df['conv_norm'] > df_final['conv_norm'] # conv_norm
         # Update values
         df_final.loc[is_more_utilized, force_columns] = df.loc[is_more_utilized, force_columns] # force dependent columns
-        df_final.loc[is_bigger_vertical_max, result_header[2]] = df.loc[is_bigger_vertical_max, result_header[2]] # max_zload
-        df_final.loc[is_bigger_vertical_min, result_header[3]] = df.loc[is_bigger_vertical_min, result_header[3]] # min_zload
+        df_final.loc[is_bigger_vertical_max, 'max_zload'] = df.loc[is_bigger_vertical_max, 'max_zload'] # max_zload
+        df_final.loc[is_bigger_vertical_min, 'min_zload'] = df.loc[is_bigger_vertical_min, 'min_zload'] # min_zload
         # Update indices
-        df_final.loc[is_more_utilized, result_header[6]] = ref # force_index and conv_norm_index
-        df_final.loc[is_more_utilized, result_header[10]] = ref
-        df_final.loc[is_bigger_vertical_max, result_header[7]] = ref # max_zload_index
-        df_final.loc[is_bigger_vertical_min, result_header[8]] = ref # min_zload_index
+        df_final.loc[is_more_utilized, 'force_index'] = ref # force_index and conv_norm_index
+        df_final.loc[is_more_utilized, 'conv_norm_index'] = ref
+        df_final.loc[is_bigger_vertical_max, 'max_zload_index'] = ref # max_zload_index
+        df_final.loc[is_bigger_vertical_min, 'min_zload_index'] = ref # min_zload_index
 
-    index_columns = [result_header[6],
-                    result_header[7],
-                    result_header[8],
-                    result_header[10]]
+    index_columns = ['force_index',
+                    'max_zload_index',
+                    'min_zload_index',
+                    'conv_norm_index']
     df_final.loc[:, index_columns] = df_final.loc[:, index_columns].fillna(ref1) # Only necessary if first df is not intact state
     return df_final
+
 
 def make_env_bins(series, num_env=None, make_plot=True, figsize=(10,6)):
     env_bins = np.unique(series, return_counts=True)
@@ -242,6 +277,7 @@ def make_env_bins(series, num_env=None, make_plot=True, figsize=(10,6)):
     
     return fig
 
+
 def direction(degrees, numeric=True):
     intervals = [22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5]
     if numeric:
@@ -252,6 +288,7 @@ def direction(degrees, numeric=True):
         if intervals[i] <= degrees < intervals[i+1]:
             return interval_name[i+1]
     return interval_name[0]
+
 
 def categorize_by_id(id_list, group_names):
     '''Function that categorizes all components
@@ -265,6 +302,7 @@ def categorize_by_id(id_list, group_names):
     
     return groups
 
+
 def read_key(key_path):
     '''Reads relevant data from key.txt-file.
     mass_w   ==> effective mass in water [kg]
@@ -272,7 +310,7 @@ def read_key(key_path):
     bouyancy ==> bouyancy [kg]
     length   ==> length [m]'''
     with open(key_path, 'r') as file:
-        header = ['ID', 'mass_w', 'mass', 'boyancy', 'L']
+        header = ['ID', 'mass_w', 'mass', 'boyancy', 'length']
         lines = {name: [] for name in header}
         for line in file:
             if 'Component' in line:
@@ -285,6 +323,7 @@ def read_key(key_path):
     df_key = pd.DataFrame(lines)
     df_key.set_index('ID', inplace=True)
     return df_key
+
 
 def collect_env(avz_path):
     '''Read environment data from .avz-file and return
@@ -312,6 +351,7 @@ def collect_env(avz_path):
         env_data[current_keys[3]].append(float(current2.attrib["direction"]))
     return env_data
 
+
 def read_env_data(env_data):
     '''Treat environment data from dictionary
     and return it in a DataFrame.'''
@@ -331,8 +371,10 @@ def read_env_data(env_data):
                    "velocity_5", "direction_5", "velocity_15", "direction_15",
                   'type', 'group', 'num_sector', 'waveangle']]
 
+
 def avz_to_env(avz_path):
     return read_env_data(collect_env(avz_path))
+
 
 def lt_summary(df_list, ref_list, num_lt=16, plot=True, figsize=(16,10)):
     '''Make barplot of force index from each df.
