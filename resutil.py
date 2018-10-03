@@ -44,7 +44,9 @@ def map_header(df_result):
         'min_zload', 'right_web', 'conv_norm',
         'force_index', 'max_zload_index', 'min_zload_index',
         'right_web_index', 'conv_norm_index', 'utilization',
-        'mbl_bound', 'mass_w', 'mass', 'boyancy', 'length'
+        'mbl_bound', 'mass_w', 'mass', 'boyancy', 'length',
+        'force_source', 'min_zload_source','max_zload_source',
+        'conv_norm_source', 'right_web_source'
     ]
     pretty_header = [
         'Lastgrensen [tonn]', 'Edit ID', 'Materialkoeffisient',
@@ -55,7 +57,9 @@ def map_header(df_result):
         'LT min vertikal last', 'LT spenningsvidde',
         'LT konvergens', 'Utnyttelse [%]', 'MBL krav [tonn]',
         'MBL-krav [tonn]', 'Effektiv masse [kg]',
-        'Oppdrift [kg]', 'Lengde [m]'
+        'Oppdrift [kg]', 'Lengde [m]', 'Makslast kilde',
+        'Min vertikal last kilde', 'Maks vertikal last kilde',
+        'Konvergens kilde', 'Spenningsvidde kilde'
     ]
     header_mapping = dict(zip(internal_header, pretty_header))
     df_pretty = df_result.copy()
@@ -74,6 +78,8 @@ def reorder_and_filter(df_result):
         'right_web', 'conv_norm', 'force_index', 
         'max_zload_index', 'min_zload_index',
         'right_web_index', 'conv_norm_index',
+        'force_source', 'min_zload_source','max_zload_source',
+        'conv_norm_source', 'right_web_source'
     ]
     allowed_headers = [name for name in desired_order if name in df_result.columns]
     return df_result[allowed_headers]
