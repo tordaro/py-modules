@@ -226,37 +226,51 @@ def avz_env_mapping(avz_path):
 
 
 def summarize(df_list, ref_list):
-    '''Compares results pairwise.
-    Returns indexed summary from both.'''
+    '''Summarizes all results in df_list
+    with correct indices, and sources from ref_list.'''
     assert len(df_list) == len(ref_list), 'Input lists must have same length.'
 
     df1 = df_list[0]
     ref1 = ref_list[0]
     df_final = df1.copy(deep=True)
+    
     force_columns = ['force', 'load', 'load_limit',
-                    'conv_norm', 'utilization', 'mbl_bound']
-
+                    'conv_norm', 'utilization', 'mbl_bound'] # Interdependent columns
+    
+    source_columns = ['force_source', 'min_zload_source',
+                     'max_zload_source', 'conv_norm_source',
+                     'right_web_source']
+    # Add source columns
+    for source in source_columns:
+        df_final[source] = ref1
+    
     for df, ref in zip(df_list[1:], ref_list[1:]):
+        is_max_out = 'force_index' in df.columns # Either all or none index columns are present
         # Filters
         is_more_utilized = df['utilization'] > df_final['utilization']
-        is_bigger_vertical_max = df['max_zload'] > df_final['max_zload'] # max_zload
-        is_bigger_vertical_min = df['min_zload'] > df_final['min_zload'] # min_zload
-        #is_less_conv = df['conv_norm'] > df_final['conv_norm'] # conv_norm
+        is_bigger_zmin = df['min_zload'] > df_final['min_zload']
+        is_bigger_zmax = df['max_zload'] > df_final['max_zload']        
+        is_bigger_rweb = df['right_web'] > df_final['right_web']
         # Update values
-        df_final.loc[is_more_utilized, force_columns] = df.loc[is_more_utilized, force_columns] # force dependent columns
-        df_final.loc[is_bigger_vertical_max, 'max_zload'] = df.loc[is_bigger_vertical_max, 'max_zload'] # max_zload
-        df_final.loc[is_bigger_vertical_min, 'min_zload'] = df.loc[is_bigger_vertical_min, 'min_zload'] # min_zload
-        # Update indices
-        df_final.loc[is_more_utilized, 'force_index'] = ref # force_index and conv_norm_index
-        df_final.loc[is_more_utilized, 'conv_norm_index'] = ref
-        df_final.loc[is_bigger_vertical_max, 'max_zload_index'] = ref # max_zload_index
-        df_final.loc[is_bigger_vertical_min, 'min_zload_index'] = ref # min_zload_index
+        df_final.loc[is_more_utilized, force_columns] = df.loc[is_more_utilized, force_columns]
+        df_final.loc[is_bigger_zmax, 'max_zload'] = df.loc[is_bigger_zmax, 'max_zload']
+        df_final.loc[is_bigger_zmin, 'min_zload'] = df.loc[is_bigger_zmin, 'min_zload']
+        # Update sources
+        df_final.loc[is_more_utilized, 'force_source'] = ref
+        df_final.loc[is_more_utilized, 'conv_norm_source'] = ref
+        df_final.loc[is_bigger_zmin, 'min_zload_source'] = ref
+        df_final.loc[is_bigger_zmax, 'max_zload_source'] = ref
+        # Update indices and rweb only if is_max_out
+        if is_max_out:
+            df_final.loc[is_more_utilized, 'force_index'] = df.loc[is_more_utilized, 'force_index']
+            df_final.loc[is_more_utilized, 'conv_norm_index'] = df.loc[is_more_utilized, 'conv_norm_index']
+            df_final.loc[is_bigger_zmin, 'min_zload_index'] = df.loc[is_bigger_zmin, 'min_zload_index']
+            df_final.loc[is_bigger_zmax, 'max_zload_index'] = df.loc[is_bigger_zmax, 'max_zload_index']
+            
+            df_final.loc[is_bigger_rweb, 'right_web_index'] = df.loc[is_bigger_rweb, 'right_web_index']
+            df_final.loc[is_bigger_rweb, 'right_web'] = df.loc[is_bigger_rweb, 'right_web']
+            df_final.loc[is_bigger_rweb, 'right_web_source'] = ref
 
-    index_columns = ['force_index',
-                    'max_zload_index',
-                    'min_zload_index',
-                    'conv_norm_index']
-    df_final.loc[:, index_columns] = df_final.loc[:, index_columns].fillna(ref1) # Only necessary if first df is not intact state
     return df_final
 
 
