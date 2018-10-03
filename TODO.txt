@@ -1,7 +1,7 @@
-COMPLETE Make global header list. Makes changing header names easier.
+DONE Make global header list. Makes changing header names easier.
 
 
-TODO Write function that groups data. Should take ID and a list of categories.
+DONE Write function that groups data. Should take ID and a list of categories.
 
 
 TODO Make one function that tests for all absolute conditions for the data.
@@ -9,10 +9,8 @@ TODO Make one function that tests for all absolute conditions for the data.
 TODO summarize(df_list, ref_list) function should take dictionary with keys as ref_list
  and a df at each key.
 
-TODO summarize() should index with reference and LT as tuple: (reference, LT), or as string: reference + '_' + str(LT).
+DONE summarize() must update load_limit as well.
 
-TODO summarize() must update load_limit as well.
-
-TODO make mapping for headers! Solves all problems!
+DONE make mapping for headers! Solves all problems!
 
 CONSIDER Object orient each configuration/fleet. Everything that belongs to a configuration/fleet is stored in an object.
