@@ -250,12 +250,14 @@ def summarize(df_list, ref_list):
     for source in source_columns:
         df_final[source] = ref1
     
+    is_max_out_final = 'force_index' in df_final.columns
+    control_value = 1
     for df, ref in zip(df_list[1:], ref_list[1:]):
         is_max_out = 'force_index' in df.columns # Either all or none index columns are present
         # Filters
         is_more_utilized = df['utilization'] > df_final['utilization']
         is_bigger_zmin = df['min_zload'] > df_final['min_zload']
-        is_bigger_zmax = df['max_zload'] > df_final['max_zload']        
+        is_bigger_zmax = df['max_zload'] > df_final['max_zload']
         is_bigger_rweb = df['right_web'] > df_final['right_web']
         # Update values
         df_final.loc[is_more_utilized, force_columns] = df.loc[is_more_utilized, force_columns]
@@ -267,7 +269,8 @@ def summarize(df_list, ref_list):
         df_final.loc[is_bigger_zmin, 'min_zload_source'] = ref
         df_final.loc[is_bigger_zmax, 'max_zload_source'] = ref
         # Update indices and rweb only if is_max_out
-        if is_max_out:
+        if is_max_out and is_max_out_final:
+            # Both df and df_final has force_indices
             df_final.loc[is_more_utilized, 'force_index'] = df.loc[is_more_utilized, 'force_index']
             df_final.loc[is_more_utilized, 'conv_norm_index'] = df.loc[is_more_utilized, 'conv_norm_index']
             df_final.loc[is_bigger_zmin, 'min_zload_index'] = df.loc[is_bigger_zmin, 'min_zload_index']
@@ -276,6 +279,23 @@ def summarize(df_list, ref_list):
             df_final.loc[is_bigger_rweb, 'right_web_index'] = df.loc[is_bigger_rweb, 'right_web_index']
             df_final.loc[is_bigger_rweb, 'right_web'] = df.loc[is_bigger_rweb, 'right_web']
             df_final.loc[is_bigger_rweb, 'right_web_source'] = ref
+
+        elif is_max_out:
+            # Only df has force indices. Necessary if df_final is not a max_out result.
+            # This block will only run once.
+            assert control_value == 1,\
+            'Naughty program trying to do an illegal operation. Not today!'
+            df_final.loc[:, 'force_index'] = df.loc[:, 'force_index']
+            df_final.loc[:, 'conv_norm_index'] = df.loc[:, 'conv_norm_index']
+            df_final.loc[:, 'min_zload_index'] = df.loc[:, 'min_zload_index']
+            df_final.loc[:, 'max_zload_index'] = df.loc[:, 'max_zload_index']
+            
+            df_final.loc[:, 'right_web_index'] = df.loc[:, 'right_web_index']
+            df_final.loc[:, 'right_web'] = df.loc[:, 'right_web']
+            df_final.loc[:, 'right_web_source'] = ref
+
+            is_max_out_final = True
+            control_value += 1
 
     return df_final
 
