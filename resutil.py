@@ -299,8 +299,25 @@ def summarize(df_list, ref_list):
 
     return df_final
 
+def add_indices(df_result, index, inplace=True):
+    'Add or change index columns. Inplace as default.'
+    index_columns = ['force_index',
+                    'max_zload_index',
+                    'min_zload_index',
+                    'right_web_index',
+                    'conv_norm_index']
+    if inplace:    
+        for index_col in index_columns:
+            df_result.loc[:, index_col] = index
+    else:
+        df_result_copy = df_result.copy(deep=True)
+        for index_col in index_columns:
+            df_result_copy.loc[:, index_col] = index
+        return df_result_copy
+
 
 def make_env_bins(series, num_env=None, make_plot=True, figsize=(10,6)):
+    print('WARNING: Deprecated function. Replaced by lt_summary().')
     env_bins = np.unique(series, return_counts=True)
     
     if make_plot:
