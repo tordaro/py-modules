@@ -39,7 +39,7 @@ def map_header(df_result):
     to pretty ones.'''
     internal_header = [
         'load_limit', 'edit_id', 'materialcoeff',
-        'mbl', 'name', 'component', 'material', 'group',
+        'mbl', 'name', 'component', 'material', 'segment',
         'force', 'load', 'max_zload',
         'min_zload', 'right_web', 'conv_norm',
         'force_index', 'max_zload_index', 'min_zload_index',
@@ -49,8 +49,8 @@ def map_header(df_result):
         'conv_norm_source', 'right_web_source'
     ]
     pretty_header = [
-        'Lastgrensen [tonn]', 'Edit ID', 'Materialkoeffisient',
-        'MBL [tonn]', 'Navn', 'Komponent', 'Materiale', 'Gruppe',
+        'Lastgrense [tonn]', 'Edit ID', 'Materialkoeffisient',
+        'MBL [tonn]', 'Navn', 'Komponent', 'Materiale', 'Segment',
         'Kraft [N]', 'Last [tonn]', 'Maks vertikal last [tonn]',
         'Min vertikal last [tonn]', 'Spenningsvidde [MPa]',
         'Konvergens', 'LT Last', 'LT maks vertikal last',
@@ -71,7 +71,7 @@ def reorder_and_filter(df_result):
     '''Reorder the columns and exclude
     uninteresting ones.'''
     desired_order = [
-        'component', 'group', 'material',
+        'component', 'segment', 'material',
         'materialcoeff', 'length', 'mass',
         'mbl', 'mbl_bound', 'load', 'load_limit',
         'utilization', 'min_zload', 'max_zload',
@@ -128,8 +128,8 @@ def model(path, is_accident, is_nice=False, to_clipboard=False):
     df_model.set_index(xml_header[7], inplace=True)
     
     if is_nice:
-        df_model[[xml_header[5], 'group']] = df_model[xml_header[5]].str.split('_', expand=True)
-        df_model.loc[:, 'group'] = df_model['group'].astype('category')
+        df_model[[xml_header[5], 'segment']] = df_model[xml_header[5]].str.split('_', expand=True)
+        df_model.loc[:, 'segment'] = df_model['segment'].astype('category')
     
     return df_model
 
@@ -347,17 +347,17 @@ def direction(degrees, numeric=True):
     return interval_name[0]
 
 
-def categorize_by_id(id_list, group_names):
+def categorize_by_id(id_list, segment_names):
     '''Function that categorizes all components
     by given ID interval.'''
-    assert len(group_names) == len(id_list) - 1,\
-    'id_list has {} elements, should have {} elements.'.format(len(id_list), len(group_names)+1)
+    assert len(segment_names) == len(id_list) - 1,\
+    'id_list has {} elements, should have {} elements.'.format(len(id_list), len(segment_names)+1)
     
-    groups = []
-    for i in range(len(group_names)):
-        groups.extend([group_names[i]] * (id_list[i+1] - id_list[i]))
+    segments = []
+    for i in range(len(segment_names)):
+        segments.extend([segment_names[i]] * (id_list[i+1] - id_list[i]))
     
-    return groups
+    return segments
 
 
 def read_key(key_path):
@@ -400,7 +400,7 @@ def collect_env(avz_path):
         current2 = load[0][1]
         for key in keys_to_numeric:
             env_data[key].append(float(load.attrib[key]))
-        env_data['group'].append(int(load.attrib['group']))
+        env_data['segment'].append(int(load.attrib['segment']))
         env_data['type'].append(load.attrib['type'])
         env_data[current_keys[0]].append(float(current1.attrib["velocity"]))
         env_data[current_keys[1]].append(float(current1.attrib["direction"]))
@@ -426,7 +426,7 @@ def read_env_data(env_data):
     df_env['type'] = pd.Categorical(df_env['type'])
     return df_env[["sector", "waveamplitude", "waveperiod", "wind", "wind_direction",
                    "velocity_5", "direction_5", "velocity_15", "direction_15",
-                  'type', 'group', 'num_sector', 'waveangle']]
+                  'type', 'segment', 'num_sector', 'waveangle']]
 
 
 def avz_to_env(avz_path):
