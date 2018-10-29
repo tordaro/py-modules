@@ -134,6 +134,55 @@ def model(path, is_accident, is_nice=False, to_clipboard=False):
     return df_model
 
 
+def collect_avz_vertices(avz_path):
+    '''Parse data from file to a dictionary.'''
+    with zipfile.ZipFile(avz_path) as zfile:
+        with zfile.open('model.avs') as file:
+            is_inside = False
+            positions = {"x": [],
+                         "y": [],
+                         "z": []}
+            for line in file:
+                nice_line = line.decode('Latin-1').strip()
+                if '}' in nice_line and is_inside:
+                    return positions
+
+                if is_inside:
+                    data_list = nice_line.split()
+                    positions["x"].append(np.float64(data_list[2]))
+                    positions["y"].append(np.float64(data_list[3]))
+                    positions["z"].append(np.float64(data_list[4]))
+                
+                if "VERTEX_LIST {" == nice_line:
+                    is_inside = True
+    return positions
+
+
+def collect_avz_edges(avz_path):
+    with zipfile.ZipFile(avz_path) as zfile:
+            with zfile.open('model.avs') as file:
+                is_inside = False
+                edges = {}
+                for line in file:
+                    nice_line = line.decode('Latin-1').strip()
+                    if "TIMESTEP {" == nice_line:
+                        return edges
+
+                    if '}' in nice_line and is_inside:
+                        is_inside = False
+
+                    if is_inside:
+                        edge_list = nice_line.split()
+                        edges[ID].append((np.int32(edge_list[-3]),
+                                              np.int32(edge_list[-1])))
+
+                    if 'LINE_LIST {' == nice_line:
+                        is_inside = True
+                        ID = str(next(file).decode('Latin-1').strip().split()[-1])
+                        next(file)  # To skip LINE_THICKNESS
+                        edges[ID] = []
+
+
 def collect_avz_data(avz_path, blocks):
     '''Parse data from file to a dictionary.'''
     with zipfile.ZipFile(avz_path) as zfile:
