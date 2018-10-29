@@ -85,7 +85,7 @@ def reorder_and_filter(df_result):
     return df_result[allowed_headers]
 
 
-def model(path, is_accident, is_nice=False, to_clipboard=False):
+def _model(path, is_accident, is_nice=False, to_clipboard=False):
     '''is_nice is true when names are clever (or nice!). 
     When is_nice=True components are categorized.
     When to_clipboard is true MBL, Materialcoeff and Materials 
@@ -134,7 +134,7 @@ def model(path, is_accident, is_nice=False, to_clipboard=False):
     return df_model
 
 
-def collect_avz_vertices(avz_path):
+def _collect_avz_vertices(avz_path):
     '''Parse data from file to a dictionary.'''
     with zipfile.ZipFile(avz_path) as zfile:
         with zfile.open('model.avs') as file:
@@ -158,7 +158,7 @@ def collect_avz_vertices(avz_path):
     return positions
 
 
-def collect_avz_edges(avz_path):
+def _collect_avz_edges(avz_path):
     with zipfile.ZipFile(avz_path) as zfile:
             with zfile.open('model.avs') as file:
                 is_inside = False
@@ -183,7 +183,7 @@ def collect_avz_edges(avz_path):
                         edges[ID] = []
 
 
-def collect_avz_data(avz_path, blocks):
+def _collect_avz_data(avz_path, blocks):
     '''Parse data from file to a dictionary.'''
     with zipfile.ZipFile(avz_path) as zfile:
         with zfile.open('model.avs') as file:
@@ -210,7 +210,7 @@ def collect_avz_data(avz_path, blocks):
     return data_dicts
 
 
-def avz_result(data_dicts, return_df_data=False):
+def _avz_result(data_dicts, return_df_data=False):
     '''Make DataFrame from data Dictionary. 
     If return_df_data is true, df_data DataFrame is also returned.'''
     df_data = pd.DataFrame(data_dicts)
@@ -250,9 +250,9 @@ def avz_result(data_dicts, return_df_data=False):
 
 def avz_to_df(avz_path, is_accident, is_nice=False):
     '''Get a complete DataFrame from .avz-file.'''
-    data_dicts = collect_avz_data(avz_path, blocks)
-    df_model = model(avz_path, is_accident, is_nice)
-    df_result = avz_result(data_dicts)
+    data_dicts = _collect_avz_data(avz_path, blocks)
+    df_model = _model(avz_path, is_accident, is_nice)
+    df_result = _avz_result(data_dicts)
     df_result['utilization'] = df_result['load'] * 100 / df_model['load_limit']
     if is_accident:
         df_result['mbl_bound'] = df_result['force'] * df_model['materialcoeff'] / (1.5 * g * 1000)
@@ -431,7 +431,7 @@ def read_key(key_path):
     return df_key
 
 
-def collect_env(avz_path):
+def _collect_env(avz_path):
     '''Read environment data from .avz-file and return
     it in a dictionary.'''
     with zipfile.ZipFile(avz_path) as zfile:
@@ -479,7 +479,7 @@ def read_env_data(env_data):
 
 
 def avz_to_env(avz_path):
-    return read_env_data(collect_env(avz_path))
+    return read_env_data(_collect_env(avz_path))
 
 
 def lt_summary(df_list, ref_list, num_lt=16, plot=True, figsize=(16,10)):
