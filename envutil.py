@@ -154,7 +154,7 @@ def make_env_AP(path, decimal=b',', col_names=None):
     env_final["steilhet"] = (env_final["tp"]**2 / env_final["hs"]) * (g / (1.9 * 2 * pi))
     return env_final
 
-def init_mc_current():
+def _init_mc_current():
     '''Return initialized dictionary.
     Ready to be loaded with data.'''
     mc_current = {
@@ -166,7 +166,7 @@ def init_mc_current():
     return mc_current
     
 
-def load_mc_current(path, depth, data_dict):
+def _load_mc_current(path, depth, data_dict):
     '''Load given initialized data_dict at 
     given depth.'''
     with open(path, "rb") as file:
@@ -180,7 +180,7 @@ def load_mc_current(path, depth, data_dict):
             data_dict["strom{}retn".format(depth)][(i+4) % 8 + 8] = float(nice_list[1])
 
 
-def read_mc_waves(path):
+def _read_mc_waves(path):
     '''Read MultiConsult wave data and
     return it in properly formatted dictionary,
     ready to be DataFramed.'''
@@ -201,7 +201,7 @@ def read_mc_waves(path):
     return mc_waves
 
 
-def read_mc_ocean_waves(path, env_df):
+def _read_mc_ocean_waves(path, env_df):
     '''Read ocean MultiConsult ocean wave data
     and return DataFrame slice that can be merged
     with env_df.'''
@@ -229,18 +229,18 @@ def read_mc_ocean_waves(path, env_df):
 def make_env_mc(waves_path, current_path_1, current_path_2, current_depths=[5,15], ocean_path=None):
     '''Make complete environmental DataFrame from MultiConsult
     data. Must have 3-4 input text files, in a standard format.'''
-    mc_waves = read_mc_waves(waves_path)
+    mc_waves = _read_mc_waves(waves_path)
     
-    mc_current = init_mc_current()
-    load_mc_current(current_path_1, current_depths[0], mc_current)
-    load_mc_current(current_path_2, current_depths[1], mc_current)
+    mc_current = _init_mc_current()
+    _load_mc_current(current_path_1, current_depths[0], mc_current)
+    _load_mc_current(current_path_2, current_depths[1], mc_current)
     
     env_final = pd.DataFrame({**mc_waves, **mc_current})
     env_final.index += 1
     env_final["steilhet"] = (env_final["tp"]**2 / env_final["hs"]) * (g / (1.9 * 2 * pi))
     
     if ocean_path:
-        ocean_env = read_mc_ocean_waves(ocean_path, env_final)
+        ocean_env = _read_mc_ocean_waves(ocean_path, env_final)
         ocean_env["steilhet"] = (ocean_env["tp"]**2 / ocean_env["hs"]) * (g / (1.9 * 2 * pi))
         return pd.concat([env_final, ocean_env])
     else:
