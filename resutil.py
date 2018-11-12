@@ -501,3 +501,26 @@ def lt_summary(df_list, ref_list, num_lt=16, plot=True, figsize=(16,10)):
         plt.show()
     else:
         return indices
+
+
+def prioritize_components(result_df, by, n_components, segments=slice(None)):
+    '''Prioritize n_components components in results_df in segment
+    groups by by-parameter. Segments of interest are given by segments.
+    Convenient for making material configuration table.'''
+    ids = result_df.groupby('segment')[by].nlargest(n_components).reset_index().id
+    prioritized = result_df.loc[ids].round(1).set_index(['segment', by])
+    return reorder_and_filter(prioritized.loc[segments])
+
+
+def pivot_config(result_df, comp_filter, column_blocks=['material', 'length'], key_path=None):
+    '''Merge result_df and data from key_path, filter results by comp_filter,
+    reorder df by components and segments and choose data blocks given by
+    column blocks.'''
+    if key_path:
+        key_df = read_key(key_path)
+        result_key = pd.merge(result_df, key_df, left_index=True, right_index=True)
+        result_slice = result_key.loc[lines, ['component', 'segment']+column_blocks]
+        return result_slice.pivot(index='component', columns='segment')
+    else:
+        result_slice = result_df.loc[lines, ['component', 'segment']+column_blocks]
+        return result_slice.pivot(index='component', columns='segment')
