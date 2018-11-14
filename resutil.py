@@ -519,8 +519,8 @@ def pivot_config(result_df, comp_filter, column_blocks=['material', 'length'], k
     if key_path:
         key_df = read_key(key_path)
         result_key = pd.merge(result_df, key_df, left_index=True, right_index=True)
-        result_slice = result_key.loc[lines, ['component', 'segment']+column_blocks]
+        result_slice = result_key.loc[comp_filter, ['component', 'segment']+column_blocks]
         return result_slice.pivot(index='component', columns='segment')
     else:
-        result_slice = result_df.loc[lines, ['component', 'segment']+column_blocks]
+        result_slice = result_df.loc[comp_filter, ['component', 'segment']+column_blocks]
         return result_slice.pivot(index='component', columns='segment')
