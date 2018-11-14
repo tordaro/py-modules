@@ -524,3 +524,26 @@ def pivot_config(result_df, comp_filter, column_blocks=['material', 'length'], k
     else:
         result_slice = result_df.loc[comp_filter, ['component', 'segment']+column_blocks]
         return result_slice.pivot(index='component', columns='segment')
+
+
+def make_conv_df(conv_paths):
+    '''Collects iteration steps for all load steps
+    in files given by the file list conv_paths.
+    Returns DataFrame with each loadstep as an
+    observation, and files as variables.
+    Recommended combine this funciton with
+    glob("../**/*conv.txt", recursive=True).'''
+    conv_data = {}
+    for conv_path in conv_paths:
+        conv_data[conv_path] = []
+        with open(conv_path) as conv_file:
+            for line in conv_file:
+                if 'CONVERGENCE' in line:
+                    nice_list = line.strip().split()
+                    # List index 4 gives iteration step also when
+                    # convergence is not achieved
+                    conv_data[conv_path].append(float(nice_list[4]))
+    
+    # Transpose trick to fill shorter lists with NaNs
+    conv_df = pd.DataFrame.from_dict(conv_data, orient='index').T
+    return conv_df
