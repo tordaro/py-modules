@@ -507,7 +507,7 @@ def prioritize_components(result_df, by, n_components, segments=slice(None)):
     '''Prioritize n_components components in results_df in segment
     groups by by-parameter. Segments of interest are given by segments.
     Convenient for making material configuration table.'''
-    ids = result_df.groupby('segment')[by].nlargest(n_components).reset_index().id
+    ids = result_df.groupby('segment')[by].nlargest(n_components).reset_index().iloc[:,1]
     prioritized = result_df.loc[ids].round(1).set_index(['segment', by])
     return reorder_and_filter(prioritized.loc[segments])
 
