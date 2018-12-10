@@ -218,9 +218,9 @@ def _read_mc_ocean_waves(path, env_df):
         "tp": np.array(mc_ocean_data["Tp_10"] + mc_ocean_data["Tp_50"])
     }
     
-    ocean_df = env_df.loc[lt]
-    ocean_df.loc[lt, "hs"] = mc_ocean_waves["hs"]
-    ocean_df.loc[lt, "tp"] = mc_ocean_waves["tp"]
+    ocean_df = env_df.loc[lt].copy()
+    ocean_df.loc[:, "hs"] = mc_ocean_waves["hs"]
+    ocean_df.loc[:, "tp"] = mc_ocean_waves["tp"]
     ocean_df.reset_index(inplace=True, drop=True)
     ocean_df.index += env_df.index[-1] + 1
     return ocean_df
