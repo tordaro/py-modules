@@ -512,18 +512,22 @@ def prioritize_components(result_df, by, n_components, segments=slice(None)):
     return reorder_and_filter(prioritized.loc[segments])
 
 
-def pivot_config(result_df, comp_filter, column_blocks=['material', 'length'], key_path=None):
+def pivot_config(result_df, segments, columns=['material', 'length'], key_path=None):
     '''Merge result_df and data from key_path, filter results by comp_filter,
     reorder df by components and segments and choose data blocks given by
     column blocks.'''
+    segment_filter = (result_df.segment == segments[0])
+    for i in range(1, len(segments)):
+        segment_filter = segment_filter | (result_df.segment == segments[i])
+    
     if key_path:
         key_df = read_key(key_path)
         result_key = pd.merge(result_df, key_df, left_index=True, right_index=True)
-        result_slice = result_key.loc[comp_filter, ['component', 'segment']+column_blocks]
-        return result_slice.pivot(index='component', columns='segment')
+        result_slice = result_key.loc[segment_filter]
+        return result_slice.pivot(index='component', columns='segment', values=columns)
     else:
-        result_slice = result_df.loc[comp_filter, ['component', 'segment']+column_blocks]
-        return result_slice.pivot(index='component', columns='segment')
+        result_slice = result_df.loc[segment_filter]
+        return result_slice.pivot(index='component', columns='segment', values=columns)
 
 
 def make_conv_df(conv_paths):
