@@ -72,11 +72,11 @@ def collect_APenv_data(path, num_cols, encoding="Latin-1"):
             data[header[i%num_cols]].append(float(nice_line))
     return data
 
-def make_env_AP(path, decimal=b',', col_names=None):
+def make_env_AP(path, decimal=b',', sep=',', col_names=None):
     '''Reads Akvaplan-niva environmental data from 
     .csv-file, without headers, and returns it in 
     properly formatted DataFrame.'''
-    AP_env = pd.read_csv(path, decimal=decimal, header=None)
+    AP_env = pd.read_csv(path, decimal=decimal, sep=sep, header=None)
     if not col_names:
         col_names = ['retning_strom',
                      '_målt_5', '_strom_5_10', '_strom_5_50',
