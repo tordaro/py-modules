@@ -419,6 +419,9 @@ def read_key(key_path):
         header = ['ID', 'mass_w', 'mass', 'boyancy', 'length']
         lines = {name: [] for name in header}
         for line in file:
+            if ' Mass centre beams and trusses ' in line:
+                # To stop after first block is read
+                break
             if 'Component' in line:
                 data = line.split()
                 if len(data) == 6:
