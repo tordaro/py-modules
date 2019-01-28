@@ -12,12 +12,12 @@ import matplotlib.pyplot as plt
 import zipfile
 
 blocks = [
-    'STRESS_LINE_LIST:Local_section_forces.Max_axial_force_N {', 
-    'STRESS_LINE_LIST:Local_section_forces.Max_axial_force_N_INDEX {',
-    'STRESS_LINE_LIST:Global_section_forces.Max_force_Z_N {',
-    'STRESS_LINE_LIST:Global_section_forces.Max_force_Z_N_INDEX {',
-    'STRESS_LINE_LIST:Nominal_stress_range.Right_web_MPa {',
-    'STRESS_LINE_LIST:Nominal_stress_range.Right_web_MPa_INDEX {',
+    'STRESS_LINE_LIST:Local_section_forces.Max_axial_force_[N] {', 
+    'STRESS_LINE_LIST:Local_section_forces.Max_axial_force_[N]_INDEX {',
+    'STRESS_LINE_LIST:Global_section_forces.Max_force_Z_[N] {',
+    'STRESS_LINE_LIST:Global_section_forces.Max_force_Z_[N]_INDEX {',
+    'STRESS_LINE_LIST:Nominal_stress_range.Right_web_[MPa] {',
+    'STRESS_LINE_LIST:Nominal_stress_range.Right_web_[MPa]_INDEX {',
     'STRESS_LINE_LIST:Convergence_norm {',
     'STRESS_LINE_LIST:Convergence_norm_INDEX {'
 ] 
