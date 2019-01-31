@@ -452,7 +452,7 @@ def _collect_env(avz_path):
         current2 = load[0][1]
         for key in keys_to_numeric:
             env_data[key].append(float(load.attrib[key]))
-        env_data['segment'].append(int(load.attrib['segment']))
+        env_data['group'].append(int(load.attrib['group']))
         env_data['type'].append(load.attrib['type'])
         env_data[current_keys[0]].append(float(current1.attrib["velocity"]))
         env_data[current_keys[1]].append(float(current1.attrib["direction"]))
@@ -478,7 +478,7 @@ def read_env_data(env_data):
     df_env['type'] = pd.Categorical(df_env['type'])
     return df_env[["sector", "waveamplitude", "waveperiod", "wind", "wind_direction",
                    "velocity_5", "direction_5", "velocity_15", "direction_15",
-                  'type', 'segment', 'num_sector', 'waveangle']]
+                  'type', 'group', 'num_sector', 'waveangle']]
 
 
 def avz_to_env(avz_path):
