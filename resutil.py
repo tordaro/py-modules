@@ -554,3 +554,26 @@ def make_conv_df(conv_paths):
     # Transpose trick to fill shorter lists with NaNs
     conv_df = pd.DataFrame.from_dict(conv_data, orient='index').T
     return conv_df
+
+
+def components_by_material(result):
+    '''
+    Lists components by materials, given materials in result.
+    '''
+    header = ["Materiale", "Komponent", "Lengder [m]", "Total lengde [m]"]
+    mat_comp_list = []
+    for material in result.material.unique():
+        mat_filter = result.material == material
+        comp_list = result.loc[mat_filter, "component"].astype(str).tolist()
+        len_list = result.loc[mat_filter, "length"].astype(str).tolist()
+        tot_len = result.loc[mat_filter, "length"].sum()
+        mat_comp_list.append(
+        	(material,
+        	'; '.join(comp_list),
+        	'; '.join(len_list),
+        	round(tot_len,1))
+        )
+
+    mat_df = pd.DataFrame(mat_comp_list, columns=header)
+    mat_df.set_index("Materiale", inplace=True)
+    return mat_df
