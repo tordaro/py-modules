@@ -231,6 +231,8 @@ def _avz_result(data_dicts, return_df_data=False):
     df_max.index.name = 'id'
     df_max['force'] = df_data.apply(lambda row: row['Forces'][row['Forces_argmax']], axis=1)
     df_max['load'] = df_max['force'] / (g * 1000)
+    df_max['max_zforce'] = df_data.apply(lambda row: row['Z_forces'][row['Z_forces_argmax']], axis=1)
+    df_max['min_zforce'] = df_data.apply(lambda row: row['Z_forces'][row['Z_forces_argmin']], axis=1)
     df_max['max_zload'] = df_data.apply(lambda row: row['Z_forces'][row['Z_forces_argmax']], axis=1) / (g * 1000)
     df_max['min_zload'] = df_data.apply(lambda row: row['Z_forces'][row['Z_forces_argmin']], axis=1) / (g * 1000)
     df_max['right_web'] = df_data.apply(lambda row: row['Right_web'][row['Right_web_argmax']], axis=1)
