@@ -181,6 +181,7 @@ def _collect_avz_edges(avz_path):
                         ID = str(next(file).decode('Latin-1').strip().split()[-1])
                         next(file)  # To skip LINE_THICKNESS
                         edges[ID] = []
+    return edges
 
 
 def _collect_avz_data(avz_path, blocks):
@@ -565,7 +566,7 @@ def components_by_material(result):
     for material in result.material.unique():
         mat_filter = result.material == material
         comp_list = result.loc[mat_filter, "component"].astype(str).tolist()
-        len_list = result.loc[mat_filter, "length"].astype(str).tolist()
+        len_list = result.loc[mat_filter, "length"].round(1).astype(str).tolist()
         tot_len = result.loc[mat_filter, "length"].sum()
         mat_comp_list.append(
         	(material,
