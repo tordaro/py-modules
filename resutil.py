@@ -281,13 +281,11 @@ def avz_env_mapping(avz_path):
     return mapping
 
 
-def summarize(df_list, ref_list):
+def summarize(results, base_ref):
     '''Summarizes all results in df_list
     with correct indices, and sources from ref_list.'''
-    assert len(df_list) == len(ref_list), 'Input lists must have same length.'
 
-    df1 = df_list[0]
-    ref1 = ref_list[0]
+    df1 = results[base_ref]
     df_final = df1.copy(deep=True)
     
     force_columns = ['force', 'load', 'load_limit',
@@ -298,12 +296,15 @@ def summarize(df_list, ref_list):
                      'right_web_source']
     # Add source columns
     for source in source_columns:
-        df_final[source] = ref1
+        df_final[source] = base_ref
     
-    is_max_out_final = 'force_index' in df_final.columns
+    is_max_out_final = ('force_index' in df_final.columns)
     control_value = 1
-    for df, ref in zip(df_list[1:], ref_list[1:]):
-        is_max_out = 'force_index' in df.columns # Either all or none index columns are present
+    for ref, df in results.items():
+        if ref == base_ref:
+            continue
+        # Either all or none index columns are present
+        is_max_out = ('force_index' in df.columns)
         # Filters
         is_more_utilized = df['utilization'] > df_final['utilization']
         is_bigger_zmin = df['min_zload'] > df_final['min_zload']
@@ -334,7 +335,7 @@ def summarize(df_list, ref_list):
             # Only df has force indices. Necessary if df_final is not a max_out result.
             # This block will only run once.
             assert control_value == 1,\
-            'Naughty program trying to do an illegal operation. Not today!'
+            'This should run only once.'
             df_final.loc[:, 'force_index'] = df.loc[:, 'force_index']
             df_final.loc[:, 'conv_norm_index'] = df.loc[:, 'conv_norm_index']
             df_final.loc[:, 'min_zload_index'] = df.loc[:, 'min_zload_index']
@@ -348,6 +349,7 @@ def summarize(df_list, ref_list):
             control_value += 1
 
     return df_final
+
 
 def add_indices(df_result, index, inplace=True):
     'Add or change index columns. Inplace as default.'
