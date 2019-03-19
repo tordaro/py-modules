@@ -11,28 +11,17 @@ from scipy.constants import g
 import matplotlib.pyplot as plt
 import zipfile
 
-blocks = [
-    'STRESS_LINE_LIST:Local_section_forces.Max_axial_force_[N] {', 
-    'STRESS_LINE_LIST:Local_section_forces.Max_axial_force_[N]_INDEX {',
-    'STRESS_LINE_LIST:Global_section_forces.Max_force_Z_[N] {',
-    'STRESS_LINE_LIST:Global_section_forces.Max_force_Z_[N]_INDEX {',
-    'STRESS_LINE_LIST:Nominal_stress_range.Right_web_[MPa] {',
-    'STRESS_LINE_LIST:Nominal_stress_range.Right_web_[MPa]_INDEX {',
-    'STRESS_LINE_LIST:Convergence_norm {',
-    'STRESS_LINE_LIST:Convergence_norm_INDEX {'
-] 
-
-block_map =  {
-    blocks[0]: 'Forces',
-    blocks[1]: 'Force_indices',
-    blocks[2]: 'Z_forces',
-    blocks[3]: 'Z_forces_indices',
-    blocks[4]: 'Right_web',
-    blocks[5]: 'Right_web_indices',
-    blocks[5]: 'Right_web_indices',
-    blocks[6]: 'Conv_norm',
-    blocks[7]: 'Conv_norm_indices'
+block_map = {
+    'STRESS_LINE_LIST:Local_section_forces.Max_axial_force_[N] {': 'Forces', 
+    'STRESS_LINE_LIST:Local_section_forces.Max_axial_force_[N]_INDEX {': 'Force_indices',
+    'STRESS_LINE_LIST:Global_section_forces.Max_force_Z_[N] {': 'Z_forces',
+    'STRESS_LINE_LIST:Global_section_forces.Max_force_Z_[N]_INDEX {': 'Z_forces_indices',
+    'STRESS_LINE_LIST:Nominal_stress_range.Right_web_[MPa] {': 'Right_web',
+    'STRESS_LINE_LIST:Nominal_stress_range.Right_web_[MPa]_INDEX {': 'Right_web_indices',
+    'STRESS_LINE_LIST:Convergence_norm {': 'Conv_norm',
+    'STRESS_LINE_LIST:Convergence_norm_INDEX {': 'Conv_norm_indices'
 }
+
 
 def map_header(df_result):
     '''Maps columns names from internal ones
@@ -83,6 +72,24 @@ def reorder_and_filter(df_result):
     ]
     allowed_headers = [name for name in desired_order if name in df_result.columns]
     return df_result[allowed_headers]
+
+
+def reorder_to_store_order(result):
+    '''
+    Reorder result to match order in master excel file.
+    '''
+    result_mod = result.reset_index()
+    desired_cols = ["name", "index", "id", "force", "force_index", 
+                   "component", "material", "segment", "mbl",
+                   "materialcoeff", "max_zforce", "min_zforce",
+                   "right_web", "right_web_index", "conv_norm",
+                   "conv_norm_index", "load", "load_limit",
+                   "utilization", "max_zload", "min_zload",
+                   "mass", "length", "mbl_bound", "edit_id",
+                   "force_source", "min_zload_source","max_zload_source",
+                   "conv_norm_source", "right_web_source"]
+    allowed_cols = [col for col in desired_cols if col in result_mod.columns]
+    return result_mod[allowed_cols]
 
 
 def _model(path, is_accident, is_nice=False, to_clipboard=False):
@@ -231,6 +238,8 @@ def _avz_result(data_dicts, return_df_data=False):
     df_max.index.name = 'id'
     df_max['force'] = df_data.apply(lambda row: row['Forces'][row['Forces_argmax']], axis=1)
     df_max['load'] = df_max['force'] / (g * 1000)
+    df_max['max_zforce'] = df_data.apply(lambda row: row['Z_forces'][row['Z_forces_argmax']], axis=1)
+    df_max['min_zforce'] = df_data.apply(lambda row: row['Z_forces'][row['Z_forces_argmin']], axis=1)
     df_max['max_zload'] = df_data.apply(lambda row: row['Z_forces'][row['Z_forces_argmax']], axis=1) / (g * 1000)
     df_max['min_zload'] = df_data.apply(lambda row: row['Z_forces'][row['Z_forces_argmin']], axis=1) / (g * 1000)
     df_max['right_web'] = df_data.apply(lambda row: row['Right_web'][row['Right_web_argmax']], axis=1)
@@ -251,6 +260,7 @@ def _avz_result(data_dicts, return_df_data=False):
 
 def avz_to_df(avz_path, is_accident, is_nice=False):
     '''Get a complete DataFrame from .avz-file.'''
+    blocks = list(block_map.keys())
     data_dicts = _collect_avz_data(avz_path, blocks)
     df_model = _model(avz_path, is_accident, is_nice)
     df_result = _avz_result(data_dicts)
@@ -281,13 +291,11 @@ def avz_env_mapping(avz_path):
     return mapping
 
 
-def summarize(df_list, ref_list):
+def summarize(results, base_ref):
     '''Summarizes all results in df_list
     with correct indices, and sources from ref_list.'''
-    assert len(df_list) == len(ref_list), 'Input lists must have same length.'
 
-    df1 = df_list[0]
-    ref1 = ref_list[0]
+    df1 = results[base_ref]
     df_final = df1.copy(deep=True)
     
     force_columns = ['force', 'load', 'load_limit',
@@ -298,12 +306,15 @@ def summarize(df_list, ref_list):
                      'right_web_source']
     # Add source columns
     for source in source_columns:
-        df_final[source] = ref1
+        df_final[source] = base_ref
     
-    is_max_out_final = 'force_index' in df_final.columns
+    is_max_out_final = ('force_index' in df_final.columns)
     control_value = 1
-    for df, ref in zip(df_list[1:], ref_list[1:]):
-        is_max_out = 'force_index' in df.columns # Either all or none index columns are present
+    for ref, df in results.items():
+        if ref == base_ref:
+            continue
+        # Either all or none index columns are present
+        is_max_out = ('force_index' in df.columns)
         # Filters
         is_more_utilized = df['utilization'] > df_final['utilization']
         is_bigger_zmin = df['min_zload'] > df_final['min_zload']
@@ -334,7 +345,7 @@ def summarize(df_list, ref_list):
             # Only df has force indices. Necessary if df_final is not a max_out result.
             # This block will only run once.
             assert control_value == 1,\
-            'Naughty program trying to do an illegal operation. Not today!'
+            'This should run only once.'
             df_final.loc[:, 'force_index'] = df.loc[:, 'force_index']
             df_final.loc[:, 'conv_norm_index'] = df.loc[:, 'conv_norm_index']
             df_final.loc[:, 'min_zload_index'] = df.loc[:, 'min_zload_index']
@@ -348,6 +359,7 @@ def summarize(df_list, ref_list):
             control_value += 1
 
     return df_final
+
 
 def add_indices(df_result, index, inplace=True):
     'Add or change index columns. Inplace as default.'
@@ -578,3 +590,18 @@ def components_by_material(result):
     mat_df = pd.DataFrame(mat_comp_list, columns=header)
     mat_df.set_index("Materiale", inplace=True)
     return mat_df
+
+
+def material_matrix(result):
+    '''
+    Pivot result by material and segment.
+    Lengts are summed. Components are counted.
+    '''
+    cols = ["material", "segment", "length", "component"]
+    mat_matrix = result[cols]
+    mat_matrix.columns = ["Materiale", "Segment", "Total lengde [m]", "Antall komponenter"]
+    agg_dict = {"Total lengde [m]": "sum", "Antall komponenter": "count"}
+    mat_matrix = mat_matrix.pivot_table(index="Materiale",
+                                        columns="Segment",
+                                        aggfunc=agg_dict)
+    return mat_matrix
