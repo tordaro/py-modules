@@ -11,28 +11,17 @@ from scipy.constants import g
 import matplotlib.pyplot as plt
 import zipfile
 
-blocks = [
-    'STRESS_LINE_LIST:Local_section_forces.Max_axial_force_[N] {', 
-    'STRESS_LINE_LIST:Local_section_forces.Max_axial_force_[N]_INDEX {',
-    'STRESS_LINE_LIST:Global_section_forces.Max_force_Z_[N] {',
-    'STRESS_LINE_LIST:Global_section_forces.Max_force_Z_[N]_INDEX {',
-    'STRESS_LINE_LIST:Nominal_stress_range.Right_web_[MPa] {',
-    'STRESS_LINE_LIST:Nominal_stress_range.Right_web_[MPa]_INDEX {',
-    'STRESS_LINE_LIST:Convergence_norm {',
-    'STRESS_LINE_LIST:Convergence_norm_INDEX {'
-] 
-
-block_map =  {
-    blocks[0]: 'Forces',
-    blocks[1]: 'Force_indices',
-    blocks[2]: 'Z_forces',
-    blocks[3]: 'Z_forces_indices',
-    blocks[4]: 'Right_web',
-    blocks[5]: 'Right_web_indices',
-    blocks[5]: 'Right_web_indices',
-    blocks[6]: 'Conv_norm',
-    blocks[7]: 'Conv_norm_indices'
+block_map = {
+    'STRESS_LINE_LIST:Local_section_forces.Max_axial_force_[N] {': 'Forces', 
+    'STRESS_LINE_LIST:Local_section_forces.Max_axial_force_[N]_INDEX {': 'Force_indices',
+    'STRESS_LINE_LIST:Global_section_forces.Max_force_Z_[N] {': 'Z_forces',
+    'STRESS_LINE_LIST:Global_section_forces.Max_force_Z_[N]_INDEX {': 'Z_forces_indices',
+    'STRESS_LINE_LIST:Nominal_stress_range.Right_web_[MPa] {': 'Right_web',
+    'STRESS_LINE_LIST:Nominal_stress_range.Right_web_[MPa]_INDEX {': 'Right_web_indices',
+    'STRESS_LINE_LIST:Convergence_norm {': 'Conv_norm',
+    'STRESS_LINE_LIST:Convergence_norm_INDEX {': 'Conv_norm_indices'
 }
+
 
 def map_header(df_result):
     '''Maps columns names from internal ones
@@ -271,6 +260,7 @@ def _avz_result(data_dicts, return_df_data=False):
 
 def avz_to_df(avz_path, is_accident, is_nice=False):
     '''Get a complete DataFrame from .avz-file.'''
+    blocks = list(block_map.keys())
     data_dicts = _collect_avz_data(avz_path, blocks)
     df_model = _model(avz_path, is_accident, is_nice)
     df_result = _avz_result(data_dicts)
