@@ -600,3 +600,18 @@ def components_by_material(result):
     mat_df = pd.DataFrame(mat_comp_list, columns=header)
     mat_df.set_index("Materiale", inplace=True)
     return mat_df
+
+
+def material_matrix(result):
+    '''
+    Pivot result by material and segment.
+    Lengts are summed. Components are counted.
+    '''
+    cols = ["material", "segment", "length", "component"]
+    mat_matrix = result[cols]
+    mat_matrix.columns = ["Materiale", "Segment", "Total lengde [m]", "Antall komponenter"]
+    agg_dict = {"Total lengde [m]": "sum", "Antall komponenter": "count"}
+    mat_matrix = mat_matrix.pivot_table(index="Materiale",
+                                        columns="Segment",
+                                        aggfunc=agg_dict)
+    return mat_matrix
