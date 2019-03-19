@@ -85,6 +85,24 @@ def reorder_and_filter(df_result):
     return df_result[allowed_headers]
 
 
+def reorder_to_store_order(result):
+    '''
+    Reorder result to match order in master excel file.
+    '''
+    result_mod = result.reset_index()
+    desired_cols = ["name", "index", "id", "force", "force_index", 
+                   "component", "material", "segment", "mbl",
+                   "materialcoeff", "max_zforce", "min_zforce",
+                   "right_web", "right_web_index", "conv_norm",
+                   "conv_norm_index", "load", "load_limit",
+                   "utilization", "max_zload", "min_zload",
+                   "mass", "length", "mbl_bound", "edit_id",
+                   "force_source", "min_zload_source","max_zload_source",
+                   "conv_norm_source", "right_web_source"]
+    allowed_cols = [col for col in desired_cols if col in result_mod.columns]
+    return result_mod[allowed_cols]
+
+
 def _model(path, is_accident, is_nice=False, to_clipboard=False):
     '''is_nice is true when names are clever (or nice!). 
     When is_nice=True components are categorized.
