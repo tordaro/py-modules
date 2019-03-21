@@ -308,7 +308,8 @@ def summarize(results, base_ref):
     df_final = df1.copy(deep=True)
     
     force_columns = ['force', 'load', 'load_limit',
-                    'conv_norm', 'utilization', 'mbl_bound'] # Interdependent columns
+                    'conv_norm', 'utilization', 'mbl_bound',
+                    'mbl_anchor', 'mbl_shackle', 'mbl_coupling'] # Interdependent columns
     
     source_columns = ['force_source', 'min_zload_source',
                      'max_zload_source', 'conv_norm_source',
