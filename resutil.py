@@ -85,7 +85,10 @@ def reorder_to_store_order(result):
                    "right_web", "right_web_index", "conv_norm",
                    "conv_norm_index", "load", "load_limit",
                    "utilization", "max_zload", "min_zload",
-                   "mass", "length", "mbl_bound", "edit_id",
+                   "mass", "length", "mbl_bound", "mbl_anchor",
+                   "mbl_shackle", "mbl_coupling", "edit_id",
+                   "max_zload_index", "min_zload_index",
+                   "right_web_index", "conv_norm_index",
                    "force_source", "min_zload_source","max_zload_source",
                    "conv_norm_source", "right_web_source"]
     allowed_cols = [col for col in desired_cols if col in result_mod.columns]
