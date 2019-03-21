@@ -615,3 +615,30 @@ def material_matrix(result):
                                         columns="Segment",
                                         aggfunc=agg_dict)
     return mat_matrix
+
+
+def key_vals(key_values,
+             df,
+             arg_col,
+             id_col,
+             segments=None,
+             key_ext="",
+             lower_bound=None):
+    
+    if segments:
+        seg_filter = np.array([False] * len(df))
+        for segment in segments:
+            seg_filter = (seg_filter | (df.segment == segment))
+        df = df.loc[seg_filter]
+    if lower_bound:
+        cond_val_filter = (df[arg_col] >= lower_bound)
+        cond_vals = df.loc[cond_val_filter, arg_col].round(1).astype(str).tolist()
+        cond_ids = df.loc[cond_val_filter, id_col].unique().astype(str).tolist()
+        key_values[arg_col+key_ext] = '; '.join(cond_vals)
+        key_values[arg_col+key_ext+"_id"] = '; '.join(cond_ids)
+    else:
+        max_val = df[arg_col].max()
+        max_val_filter = (df[arg_col] == max_val)
+        max_ids = df.loc[max_val_filter, id_col].unique().astype(str).tolist()
+        key_values[arg_col+key_ext] = max_val
+        key_values[arg_col+key_ext+"_id"] = '; '.join(max_ids)
