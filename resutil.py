@@ -270,8 +270,14 @@ def avz_to_df(avz_path, is_accident, is_nice=False):
     df_result['utilization'] = df_result['load'] * 100 / df_model['load_limit']
     if is_accident:
         df_result['mbl_bound'] = df_result['force'] * df_model['materialcoeff'] / (1.5 * g * 1000)
+        df_result['mbl_anchor'] = df_result['force'] * (3 / (1.5 * g * 1000))
+        df_result['mbl_shackle'] = df_result['force'] * (2 / (1.5 * g * 1000))
+        df_result['mbl_coupling'] = df_result['force'] / (g * 1000)
     else:
         df_result['mbl_bound'] = df_result['force'] * df_model['materialcoeff'] * (1.15 / (g * 1000))
+        df_result['mbl_anchor'] = df_result['force'] * ((1.15 * 3) / (g * 1000))
+        df_result['mbl_shackle'] = df_result['force'] * ((1.15 * 2) / (g * 1000))
+        df_result['mbl_coupling'] = df_result['force'] * ((1.15 * 1.5) / (g * 1000))
     return pd.merge(df_model, df_result, left_index=True, right_index=True)
 
 
