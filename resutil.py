@@ -85,7 +85,10 @@ def reorder_to_store_order(result):
                    "right_web", "right_web_index", "conv_norm",
                    "conv_norm_index", "load", "load_limit",
                    "utilization", "max_zload", "min_zload",
-                   "mass", "length", "mbl_bound", "edit_id",
+                   "mass", "length", "mbl_bound", "mbl_anchor",
+                   "mbl_shackle", "mbl_coupling", "edit_id",
+                   "max_zload_index", "min_zload_index",
+                   "right_web_index", "conv_norm_index",
                    "force_source", "min_zload_source","max_zload_source",
                    "conv_norm_source", "right_web_source"]
     allowed_cols = [col for col in desired_cols if col in result_mod.columns]
@@ -267,8 +270,14 @@ def avz_to_df(avz_path, is_accident, is_nice=False):
     df_result['utilization'] = df_result['load'] * 100 / df_model['load_limit']
     if is_accident:
         df_result['mbl_bound'] = df_result['force'] * df_model['materialcoeff'] / (1.5 * g * 1000)
+        df_result['mbl_anchor'] = df_result['force'] * (3 / (1.5 * g * 1000))
+        df_result['mbl_shackle'] = df_result['force'] * (2 / (1.5 * g * 1000))
+        df_result['mbl_coupling'] = df_result['force'] / (g * 1000)
     else:
         df_result['mbl_bound'] = df_result['force'] * df_model['materialcoeff'] * (1.15 / (g * 1000))
+        df_result['mbl_anchor'] = df_result['force'] * ((1.15 * 3) / (g * 1000))
+        df_result['mbl_shackle'] = df_result['force'] * ((1.15 * 2) / (g * 1000))
+        df_result['mbl_coupling'] = df_result['force'] * ((1.15 * 1.5) / (g * 1000))
     return pd.merge(df_model, df_result, left_index=True, right_index=True)
 
 
@@ -299,7 +308,8 @@ def summarize(results, base_ref):
     df_final = df1.copy(deep=True)
     
     force_columns = ['force', 'load', 'load_limit',
-                    'conv_norm', 'utilization', 'mbl_bound'] # Interdependent columns
+                    'conv_norm', 'utilization', 'mbl_bound',
+                    'mbl_anchor', 'mbl_shackle', 'mbl_coupling'] # Interdependent columns
     
     source_columns = ['force_source', 'min_zload_source',
                      'max_zload_source', 'conv_norm_source',
@@ -605,3 +615,30 @@ def material_matrix(result):
                                         columns="Segment",
                                         aggfunc=agg_dict)
     return mat_matrix
+
+
+def key_vals(key_values,
+             df,
+             arg_col,
+             id_col,
+             segments=None,
+             key_ext="",
+             lower_bound=None):
+    
+    if segments:
+        seg_filter = np.array([False] * len(df))
+        for segment in segments:
+            seg_filter = (seg_filter | (df.segment == segment))
+        df = df.loc[seg_filter]
+    if lower_bound:
+        cond_val_filter = (df[arg_col] >= lower_bound)
+        cond_vals = df.loc[cond_val_filter, arg_col].round(1).astype(str).tolist()
+        cond_ids = df.loc[cond_val_filter, id_col].unique().astype(str).tolist()
+        key_values[arg_col+key_ext] = '; '.join(cond_vals)
+        key_values[arg_col+key_ext+"_id"] = '; '.join(cond_ids)
+    else:
+        max_val = df[arg_col].max()
+        max_val_filter = (df[arg_col] == max_val)
+        max_ids = df.loc[max_val_filter, id_col].unique().astype(str).tolist()
+        key_values[arg_col+key_ext] = max_val
+        key_values[arg_col+key_ext+"_id"] = '; '.join(max_ids)
