@@ -333,7 +333,9 @@ def summarize(results, base_ref):
         # Update values
         df_final.loc[is_more_utilized, force_columns] = df.loc[is_more_utilized, force_columns]
         df_final.loc[is_bigger_zmax, 'max_zload'] = df.loc[is_bigger_zmax, 'max_zload']
+        df_final.loc[is_bigger_zmax, 'max_zforce'] = df.loc[is_bigger_zmax, 'max_zforce']
         df_final.loc[is_bigger_zmin, 'min_zload'] = df.loc[is_bigger_zmin, 'min_zload']
+        df_final.loc[is_bigger_zmax, 'min_zforce'] = df.loc[is_bigger_zmax, 'min_zforce']
         # Update sources
         df_final.loc[is_more_utilized, 'force_source'] = ref
         df_final.loc[is_more_utilized, 'conv_norm_source'] = ref
