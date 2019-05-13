@@ -7,9 +7,13 @@ from geographiclib.geodesic import Geodesic
 def _format_degree_minutes(latitude, longitude):
     '''Format from decimal minutes to degrees decimal minutes.'''
     h_lat = int(latitude / 60)
-    min_lat = latitude - h_lat * 60
+    # The adding of 1e-4 and modulo 1e-3 business is to fix
+    # the (really weird) olex round off. Olex rounds off at 9, not 5.
+    min_lat = latitude - h_lat * 60 + 1e-4
+    min_lat -= min_lat % 1e-3
     h_long = int(longitude / 60)
-    min_long = longitude - h_long * 60
+    min_long = longitude - h_long * 60 + 1e-4
+    min_long -= min_long % 1e-3
     return '{:02d}\N{degree sign}{:06.3f} N - {:02d}\N{degree sign}{:06.3f} Ø'\
         .format(h_lat, min_lat, h_long, min_long)
 
